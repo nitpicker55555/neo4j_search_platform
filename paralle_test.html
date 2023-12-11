@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <script src="https://unpkg.com/neo4j-driver"></script>
+    <style>
+        #ai-dropdown{
+            left: 500px;
+            z-index: 999;
+            width: 200px;
+        }
+    </style>
+</head>>
+<body>
+<div id="graph-container"></div>
+
+<!-- Dropdown menu -->
+<label for="ai-dropdown">Choose an AI topic:</label>
+<select id="ai-dropdown">
+<!--  <option value="ai_designers">AI Designers</option>-->
+<!--  <option value="ai_products">AI Products</option>-->
+<!--  <option value="ai_ethics_governance">AI Ethics Governance Guidelines</option>-->
+<!--  <option value="ai_ethics_resolution">AI Ethics Issue Resolution Measures</option>-->
+<!--  <option value="ai_ethics_issues">AI Ethics Issues</option>-->
+<!--  &lt;!&ndash; ... continue for each of your terms ... &ndash;&gt;-->
+<!--  <option value="clearview_ai">Clearview AI</option>-->
+</select>
+
+<script>
+  // Example: Attach a change event listener to the dropdown
+  const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "12345678"),{encrypted: false});
+  const session = driver.session({database:"neo4j"});
+
+  session.run("CALL db.labels()")
+          .then(function(result) {
+              var dropdown = document.getElementById('ai-dropdown'); // if this returns null, the next line will throw an error
+              // dropdown.add(option);
+              // console.log(result)
+            result.records.forEach(function(record) {
+              var option = document.createElement('option');
+              option.value = record.get(0);
+              option.text = record.get(0);
+              dropdown.add(option);
+            });
+
+            // Close the session and driver
+            session.close();
+            driver.close();
+
+          }).catch(error => {
+              console.error(error);
+          });
+
+</script>
+</body>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+  svg {
+    font: 5px sans-serif;
+  }
+
+  .background path {
+    fill: none;
+    stroke: #ccc;
+    stroke-opacity: .1;
+    shape-rendering: crispEdges;
+      stroke-width: 1px; /* 设置前景线的宽度 */
+  }
+
+  .foreground path {
+    fill: none;
+    stroke: steelblue;
+    stroke-opacity: .1;
+      stroke-width: 4px; /* 设置前景线的宽度 */
+  }
+
+
+  .brush .extent {
+    fill-opacity: .10;
+    stroke: #fff;
+    shape-rendering: crispEdges;
+  }
+  .brush .extent {
+      fill: red;  /* 更改筛选框的填充颜色 */
+      fill-opacity: .3;
+      stroke: #fff;  /* 更改筛选框的边框颜色 */
+      shape-rendering: crispEdges;
+  }
+
+  .axis line, .axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+  .axis text {
+    text-shadow: 0 0px 0 #fff;
+  }
+
+
+</style>
+<body>
+
+<div id="graph-container"></div>
+
+
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<!--<textarea id="data-output" rows="10" cols="50"></textarea>-->
+<script>
+    var colorScale = d3.scale.category10();
+    // 或者
+    // var colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var query = window.location.search.substring(1);
+    var params = query.split('&');
+    var paramMap = {};
+
+    for (var i = 0; i < params.length; i++) {
+        var pair = params[i].split('=');
+        paramMap[pair[0]] = decodeURIComponent(pair[1]);
+    }
+
+    console.log(paramMap.param1); // "value1" node.label  Sum or not
+    console.log(paramMap.param2); // "value2" node.caption  Index
+    console.log(paramMap.param3); // "value2" big small
+
+
+    if (paramMap.param3=="big"){
+
+        var m = [30, 0, 20, 50], //向上，向右，向下，向左
+            w = 2900 - m[1] - m[3],
+            h = 400 - m[0] - m[2];
+
+    }else{
+        var m = [30, 50, 20, 10],
+            w = 900 - m[1] - m[3],
+            h = 200 - m[0] - m[2];
+    }
+  var x = d3.scale.ordinal().rangePoints([0, w], .5),
+          y = {};
+
+  var line = d3.svg.line(),
+          axis = d3.svg.axis().orient("left"),
+          background,
+          foreground;
+
+  var svg = d3.select("#graph-container").append("svg")
+          .attr("width", w + m[1] + m[3])
+          .attr("height", h + m[0] + m[2])
+          .append("g")
+          .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+    var case_index = paramMap.param2.match(/\d+/)[0];
+
+    // 替换"ai1_zh.csv"中的数字
+    // var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
+    var filename = "ai_kg.csv"
+    console.log(case_index,"filename")
+    console.log(filename,"filename")
+        d3.csv(filename, function(error, cities) {
+    if (error) throw error;
+
+    // Extract the list of dimensions and create a scale for each.
+    x.domain(dimensions = d3.keys(cities[0]).filter(function(d) {   //filter掉特定的列
+      return d != "City" && (y[d] = d3.scale.linear()
+              .domain(d3.extent(cities, function(p) { return +p[d]; }))  // extend返回最大最小值
+              .range([h, 0]));
+    }));
+   if (paramMap.param1!=="Sum"){
+
+       str_num = paramMap.param2.replace("[", "").replace("]", "");  // 去掉括号
+       var arr = str_num.split(",");  // 使用逗号切分字符串
+       //var selectedRows =[cities.slice(parseInt(arr[0]),parseInt(arr[0])+1)[0],cities.slice(parseInt(arr[1]),parseInt(arr[1])+1)[0]]
+       var selectedRows = cities.filter(function(row) {
+           return cities;  // 假设'cluster'列是字符串类型
+       });
+       console.log((selectedRows),"selectedRows")
+       // var selectedRows = cities.slice(parseInt(12),parseInt(12)+1)  //选取特定行数据
+       // var selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
+       // Add grey background lines for context.
+   }else {
+
+
+       // Add grey background lines for context.
+   }
+            if (paramMap.param3=="big") {
+                d3.select("svg").style("font", "15px sans-serif");
+            }
+    background = svg.append("g")
+            .attr("class", "background")
+            .selectAll("path")
+            .data(selectedRows)
+            .enter().append("path")
+            .attr("d", path);
+
+    // Add blue foreground lines for focus.
+
+    foreground = svg.append("g")
+        .attr("class", "foreground")
+        .selectAll("path")
+        .data(selectedRows)
+        .enter().append("path")
+        .attr("d", path)
+        .style("stroke", function(d) {
+            return colorScale(d.Index);  // your_attribute是你想根据其设置颜色的属性
+        });
+
+    // Add a group element for each dimension.
+    var g = svg.selectAll(".dimension")
+            .data(dimensions)
+            .enter().append("g")
+            .attr("class", "dimension")
+            .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+
+    // Add an axis and title.
+    g.append("g")
+            .attr("class", "axis")
+            .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr("y", -9)
+            .text(String);
+
+    // Add and store a brush for each axis.
+    g.append("g")
+            .attr("class", "brush")
+            .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush)); })
+            .selectAll("rect")
+            .attr("x", -8)
+            .attr("width", 16);
+  });
+
+  // Returns the path for a given data point.
+  function path(d) {
+    return line(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+
+  }
+
+  // Handles a brush event, toggling the display of foreground lines.
+    function brush() {
+        var actives = dimensions.filter(function(p) { return !y[p].brush.empty(); }),
+            extents = actives.map(function(p) { return y[p].brush.extent(); });
+
+        var visibleData = [];
+        foreground.style("display", function(d) {
+            var isVisible = actives.every(function(p, i) {
+                return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+            });
+
+            if (isVisible) visibleData.push(d);
+
+            // 更新线条颜色
+            d3.select(this).style("stroke", function() {
+                return isVisible ? colorScale(d.your_attribute) : "#ccc";
+            });
+
+            return isVisible ? null : "none";
+        });
+
+
+        // 更新textarea的内容
+        var output = d3.select("#data-output");
+        output.property("value", "Selected count: " + visibleData.length + "\n\n");  // 显示选中的数量
+
+        visibleData.forEach(function(d) {
+            output.property("value", output.property("value") + JSON.stringify(d) + "\n");
+        });
+    }
+
+  // 下载SVG
+
+
+</script>
+</body>

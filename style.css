@@ -1,0 +1,62 @@
+/* 设置背景图片 */
+.background {
+    background-image: url('background.JPG');  /* 你的图片URL */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 毛玻璃效果 */
+.glass-effect {
+    backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 500px; /* 可根据需要调整 */
+}
+
+/* 输入框 */
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 30px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.2);  /* 背景设置为透明 */
+    border: 0px solid #ccc;  /* 根据需要调整边框颜色 */
+    height: 50px;  /* 设置按钮高度 */
+    /*height: 50px;  !* 设置按钮高度 *!*/
+    color: white;  /* 设置文本颜色 */
+}
+
+/* 按钮容器 */
+.button-container {
+    width: 94%;
+    display: flex;
+    flex-direction: column;  /* 修改为垂直排列 */
+}
+
+/* 按钮样式 */
+.login-button, .register-button {
+    display: block;  /* 设置为块级元素 */
+    margin-bottom: 10px;  /* 添加底部边距 */
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 20px;
+    height: 50px;  /* 设置按钮高度 */
+    border-radius: 5px;
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+/* 按钮悬停效果 */
+.login-button:hover, .register-button:hover {
+    background-color: white;
+    color: black;
+}

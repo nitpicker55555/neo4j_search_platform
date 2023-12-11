@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Suggestions</title>
+  <style>
+    /* 这里可以添加一些简单的样式 */
+    #suggestions {
+      display: none;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .suggestion-item {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .suggestion-item:hover {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+<input type="text" id="searchInput" placeholder="Type to search...">
+<button onclick="search()">Search</button>
+<div id="suggestions"></div>
+
+<script>
+  const words = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"];
+
+  document.getElementById("searchInput").addEventListener("input", function() {
+    const query = this.value.toLowerCase();
+    const suggestions = document.getElementById("suggestions");
+    suggestions.innerHTML = "";
+    let hasSuggestions = false;
+
+    words.forEach(word => {
+      if (word.includes(query) && query !== "") {
+        const div = document.createElement("div");
+        div.textContent = word;
+        div.className = "suggestion-item";
+        div.onclick = function() {
+          document.getElementById("searchInput").value = word;
+          suggestions.style.display = "none";
+        }
+        suggestions.appendChild(div);
+        hasSuggestions = true;
+      }
+    });
+
+    suggestions.style.display = hasSuggestions ? "block" : "none";
+  });
+
+  function search() {
+    // 这里可以添加搜索按钮的功能，例如发送请求到服务器
+    alert("Searching for: " + document.getElementById("searchInput").value);
+  }
+</script>
+</body>
+</html>

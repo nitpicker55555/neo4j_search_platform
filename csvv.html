@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+<script>
+    var firstColumn; // 声明全局变量
+
+    d3.csv("cost-of-living.csv", function(data) {
+        var headers = d3.keys(data[0])[0];
+        var firstRow = data[0];
+        console.log(headers);
+    });
+
+
+    // 在函数外部访问 firstColumn 变量
+    // 这里的输出仍然是 undefined，因为数据可能还没有加载完成
+
+  </script>
+</body>
+</html>

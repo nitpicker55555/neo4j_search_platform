@@ -1,0 +1,601 @@
+<head xmlns="http://www.w3.org/1999/html">
+    <style> body { margin: 0; }
+    #node-caption {
+        position: absolute;
+        display: none;
+        z-index: 100;
+    }
+    #node-picture {
+        position: absolute;
+        display: none;
+        z-index: 100;
+    }
+    #paralle{
+        position: absolute;
+        display: none;
+        z-index: 999;
+    }
+    .checkbox-container {
+        position: absolute;
+        display: flex;
+        z-index: 999;
+        justify-content: center;
+        top: 10px;
+        left: 300px;
+    }
+    /* Checkbox与标签排列 */
+    .checkbox-item {
+        z-index: 999;
+        margin-right: 15px;
+
+    }
+    #Caption{
+        position: absolute;
+        font-style: italic;
+        font-weight: bold;
+        z-index: 999;
+        top: 10px;
+    }
+    #result{
+        /*position: absolute;*/
+        font-style: italic;
+        z-index: 999;
+        /*top: 40px;*/
+        /*left: 480px;*/
+        font-size: small;
+    }
+    #label_check{
+        position: absolute;
+        /*font-style: italic;*/
+        z-index: 999;
+        top: 10px;
+        left: 340px;
+        font-size: small;
+    }
+    #myCheckbox{
+        position: absolute;
+        z-index: 999;
+        top: 10px;
+        left: 450px;
+    }
+
+
+    /*#ai-caption {*/
+    /*    margin-right: 20px; !* space between ai-caption and ai_dropdown *!*/
+    /*}*/
+
+    /*#ai_dropdown {*/
+    /*    margin-right: 200px; !* space between ai_dropdown and searchInput *!*/
+    /*}*/
+
+    /*#ai_dropdown{*/
+    /*    position: absolute;*/
+    /*    left: 60px;*/
+    /*    z-index: 999;*/
+    /*    top:40px;*/
+    /*    width: 200px;*/
+    /*}*/
+    /*#ai-caption{*/
+    /*    position: absolute;*/
+    /*    z-index: 999;*/
+    /*    top:40px;*/
+    /*}*/
+    /*#searchInput{*/
+    /*    position: absolute;*/
+    /*    left: 280px;*/
+    /*    z-index: 999;*/
+    /*    top:40px;*/
+    /*    width: 205px;*/
+    /*}*/
+
+    #suggestions{
+        position: absolute;
+        z-index: 999;
+        left: 280px;
+        top: 71px;
+        max-height: 250px;  /* 或者您希望的任何其他高度 */
+        overflow-y: auto;  /* 当内容超出容器时，垂直方向上允许滚动 */
+        border: 1px solid #ccc; /* 可选：为下拉菜单添加边框 */
+        width: 200px; /* 可选：设置下拉菜单的宽度，或者使其与输入框宽度相匹配 */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 可选：为下拉菜单添加轻微的阴影 */
+
+    }
+    .element-group {
+        position: absolute;
+        left: 10px;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        width: 100px;
+        top: 40px;
+        /* other styles as needed... */
+    }
+    #ai-caption {
+
+        margin-right: 20px; /* space between ai-caption and ai_dropdown */
+    }
+
+    #ai_dropdown {
+        width: 200px;
+        margin-right: 20px; /* space between ai_dropdown and searchInput */
+    }
+    #attribute_dropdown {
+        width: 200px;
+        margin-right: 20px; /* space between ai_dropdown and searchInput */
+    }
+
+    /*#ai_button{*/
+    /*    left: 600px;*/
+    /*    position: absolute;*/
+    /*    z-index: 999;*/
+    /*    top: 40px;*/
+
+    /*}*/
+    table {
+        border-collapse: collapse;  /* this is necessary for borders to collapse into one */
+        border: 1px solid black;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;  /* for padding inside cells */
+    }
+    th {
+        background-color: #f2f2f2;  /* light gray background for headers */
+    }
+
+    #details{
+        left: 10px;
+        position: absolute;
+        z-index: 999;
+
+    }
+    .duplicated {
+        left: 400px;  /* Original 100px + 300px */
+    }
+    .suggestion-item {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .suggestion-item:hover {
+        background-color: #eee;
+    }
+
+    iframe {
+        border: none;
+
+    }
+    </style>
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/@seregpie/three.text-texture"></script>
+    <script src="https://unpkg.com/@seregpie/three.text-sprite"></script>
+    <script src="//unpkg.com/3d-force-graph"></script>
+    <script src="https://unpkg.com/neo4j-driver"></script>
+
+    <!--<script src="../../dist/3d-force-graph.js"></script>-->
+</head>
+<title>3D Knowledge Graph Platform</title>
+<body>
+<input type="text" id="node-caption" />
+
+<!--<div id="suggestions2"></div>-->
+<div id="3d-graph"></div>
+
+<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>
+
+<label id="Caption">Ai ethics visual analysis platform</label>
+
+<div class="checkbox-container">
+    <div class="checkbox-item">
+        <input type="checkbox" id="check1">
+        <label for="check1">Show all labels</label>
+
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="check2">
+        <label for="check2">3D</label>
+        <button id="ai_button">+</button>
+        <button id="minus_button">-</button>
+        <label  id="result">1 Case found</label>
+    </div>
+</div>
+<div class="element-group">
+    <label for="ai_dropdown" id="ai-caption">Label:</label>
+    <select id="ai_dropdown">
+        <option value="AI Ethics" selected>Select labels</option>
+    </select>
+    <select id="attribute_dropdown">
+        <option value="AI Ethics" selected>Select labels</option>
+    </select>
+<!--    <input type="text" id="searchInput" placeholder="Search in label"/>-->
+
+</div>
+
+
+
+
+<table id="dataTable">
+    <thead>
+    <tr>
+        <th>Node Label</th>
+        <th>Node Caption</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Rows will be added here dynamically -->
+    </tbody>
+</table>
+
+
+<div id="suggestions"></div>
+
+<script>
+    var listener_list =[]
+    let clickCount = 0;  // To keep track of how many times the button has been clicked
+    function getElementDistanceFromLeftEdge(element) {
+        // 获取元素相对于视口的位置
+        const rect = element.getBoundingClientRect();
+
+        // 计算元素左边缘距离屏幕左边缘的距离
+        const distance = rect.left + window.scrollX;
+
+        return distance;
+    }
+    function setEqualDistanceFromLeftEdge(element1, element2) {
+        // 计算第一个元素与屏幕左边缘的距离
+        const distance = element1.getBoundingClientRect().left;
+
+        // 应用相同的距离到第二个元素
+        // 这里假设元素使用绝对定位或固定定位
+        element2.style.left = distance + 'px';
+
+        // 如果元素是相对定位或静态定位，您可能需要使用 marginLeft
+        // element2.style.marginLeft = distance + 'px';
+    }
+    document.getElementById('ai_button').addEventListener('click', function() {
+        // Increment the click count
+        clickCount++;
+
+        // var totalChildNodes = document.body.childNodes.length;
+
+// 获取 document.body 的子元素总数，仅包括元素节点
+        var totalChildElements = document.body.children.length;
+        clickCount=totalChildElements-9
+        // console.log("Total child nodes: " + totalChildNodes);
+        console.log("Total child elements: " + totalChildElements);
+        console.log('clickCount'+clickCount)
+        // Clone the original element group
+        const original = document.querySelector('.element-group');
+        const clone = original.cloneNode(true);
+        var top_var =document.querySelector('.element-group').getBoundingClientRect();
+        // var rect = element.getBoundingClientRect();
+
+        // 获取文档的垂直滚动距离
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+        // 计算元素的顶部位置相对于文档的顶部的距离
+        var top = top_var.top + scrollTop;
+        console.log('top_var'+top)
+        // Set the left position of the clone and the button based on the click count
+        clone.style.top = (top + 50 * clickCount) + "px";
+        // this.style.left = (600 + 500 * clickCount) + "px";  // Move the button
+        // document.getElementById('result').style.left= (480 + 500 * clickCount) + "px";
+
+        // Append the cloned group to the body or another container
+        const originalChildren = original.querySelectorAll('[id]');
+// 获取克隆元素的所有子元素
+        const clonedChildren = clone.querySelectorAll('[id]');
+
+// 遍历所有子元素并更新克隆元素的 id
+        originalChildren.forEach((originalChild, index) => {
+            const clonedChild = clonedChildren[index];
+            const newId = originalChild.id + '_clone'+clickCount.toString();
+            clonedChild.id = newId;
+            // 现在 clonedChild 有了一个新的唯一 id
+        });
+
+
+        document.body.appendChild(clone);
+        // 选择所有的 select 元素
+        add_listener();
+
+
+    });
+    document.getElementById('minus_button').addEventListener('click', function() {
+        // Increment the click count
+        var totalChildElements = document.body.children.length;
+        var lastChild = document.body.lastChild;
+
+// 从 document.body 中移除这个子节点
+        if (totalChildElements>9){
+            document.body.removeChild(lastChild);
+        }
+
+    });
+
+    const elem = document.getElementById('3d-graph');
+    elem.style.zIndex=1;
+    const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "12345678"),{encrypted: false});
+    const session = driver.session({database:"neo4j"});
+    const session2 = driver.session({database:"neo4j"});
+    var session_attribute = driver.session({database:"neo4j"});
+    session2.run("CALL db.labels()")
+        .then(function(result) {
+            var dropdown = document.getElementById('ai_dropdown'); // if this returns null, the next line will throw an error
+            // dropdown.add(option);
+            // console.log(result)
+            result.records.forEach(function(record) {
+                var option = document.createElement('option');
+                option.value = record.get(0);
+                option.text = record.get(0);
+                dropdown.add(option);
+            });
+
+            // Close the session and driver
+            session2.close();
+            // driver.close();
+
+        }).catch(error => {
+        console.error(error);
+    });
+
+    const start = new Date()
+    var iframe = document.getElementById("paralle");
+    iframe.scrolling="no";
+    document.body.appendChild(iframe);
+    iframe.style.width = '300px';
+    iframe.style.height = '120px';
+    var src_="";
+    iframe.onclick = function() {
+        window.location.href = src_;
+        console.log(src_); // "value2"
+    }
+
+    const words = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"];
+
+
+    document.addEventListener('click', function(event) {
+        console.log('Element clicked:', event.target);
+        if (iframe.style.display==="block"){
+            window.location.href = src_;
+        }
+
+    });
+    session_elem("");
+
+    add_listener();
+    // 选择所有的 select 元素
+    function add_listener(){
+        const selects = document.querySelectorAll('select');
+        // const selects_list =Array.from(selects);
+        let idList = [];
+
+// 遍历 DOM 列表
+        selects.forEach(element => {
+            idList.push(element.id); // 将每个元素的 id 添加到数组中
+        });
+        // let need_add_list = selects.filter(item => !listener_list.includes(item));
+        // listener_list.forEach(item => selects_list.delete(item));
+
+        let need_listen_list = idList.filter(item => !listener_list.includes(item));
+        listener_list.push(need_listen_list)
+        console.log("selects",need_listen_list)
+        console.log("listener_list",listener_list)
+        need_listen_list.forEach((select, index, array) => {
+            // 检查 id 是否以 'aaa' 开头
+            const select_dom=document.getElementById(select)
+            console.log("select",select)
+            if (select.startsWith('ai_dropdown')) {
+                var nextId = array[index + 1];
+                console.log("nextId",nextId)
+
+                // 为符合条件的 select 元素添加事件监听器
+                select_dom.addEventListener('change', (event) => {
+                    // 这里是您想要执行的代码
+                    var selectedOption = select_dom.options[select_dom.selectedIndex].text;
+                    // var selectElement = document.getElementById("attribute_dropdown");
+
+// 更改第一个选项的文本
+//         selectElement.options[0].text = "Search in "+selectedOption;
+                    // document.getElementById("attribute_dropdown").selectedIndex = 0;
+                    // document.getElementById('attribute_dropdown').value = "Search in "+selectedOption;
+
+                    const attribute_query = `
+                 MATCH (n:\`${selectedOption}\`)
+                        RETURN DISTINCT n.name;
+                        `;
+                    session_attribute.run(attribute_query)
+                        .then(function(result) {
+                            var dropdown = document.getElementById(nextId); // if this returns null, the next line will throw an error
+                            // dropdown.add(option);
+                            console.log("dropdown",dropdown,nextId)
+                            // console.log(result)
+                            if (dropdown) {
+                                // 清空所有选项
+                                dropdown.innerHTML = '';
+                            }
+                            result.records.forEach(function(record) {
+                                var option = document.createElement('option');
+                                option.value = record.get(0);
+                                option.text = record.get(0);
+                                if (!option.text.endsWith("_148")){
+                                    dropdown.add(option);
+                                }
+
+                            });
+
+                            // Close the session and driver
+                            // session_attribute.close();
+                            // driver.close();
+
+                        }).catch(error => {
+                        console.error(error);
+                    });
+                    var newOption = document.createElement("option");
+                    newOption.value =  "Search in "+selectedOption;
+                    newOption.text = "Search in "+selectedOption;
+
+// 获取 <select> 元素
+//                 var selectElement = document.getElementById("attribute_dropdown");
+
+// 将新选项添加到 <select> 的最前面
+                    document.getElementById(nextId).insertBefore(newOption, document.getElementById(nextId).firstChild);
+
+// 将这个新选项设为默认选中
+                    document.getElementById(nextId).value = "Search in "+selectedOption;
+                    update_search();
+                });
+                select_dom.style.width = '200px';
+                select_dom.style.marginRight = '20px';
+            }else if (select.startsWith('attribute_dropdown')){
+                select_dom.addEventListener('change', (event) => {
+                    update_search()
+                })
+            }
+        });
+    }
+
+
+    function update_search(){
+        const selects = document.querySelectorAll('select');
+
+// 使用 Array.from 方法将 NodeList 转换为数组
+        const selectIds = Array.from(selects).map(select => select.id);
+
+// 打印所有的 select 元素的 id
+
+        let condition="WHERE  "
+        // WHERE  n.TrueLabel CONTAINS "148"  and  NOT n.redundancy RETURN n.TrueLabel;
+        selectIds.forEach((id, index) => {
+
+            let dropdown_str=document.getElementById(id).value
+
+            if (id.startsWith('attribute_dropdown')){
+                condition+="="+dropdown_str;
+            }else if (id.startsWith('ai_dropdown')){
+                condition+="  n."+dropdown_str;
+                if (index !== 0) {
+                    condition+=" and "
+                }
+
+            }
+
+        })
+        console.log(condition);
+    }
+function session_elem(condition){
+    session
+        // .run(
+        //     `MATCH (n)-->(m)
+        //     WHERE  n.TrueLabel CONTAINS "148"  and  NOT n.redundancy
+        //     RETURN { id: id(n), label:head(labels(n)), caption:n.name } as source, { id: id(m), label:head(labels(m)), caption:m.name } as target LIMIT $limit`, {limit: neo4j.int(5000)})
+
+        .run('MATCH (n)-->(m) \n' +condition+
+            '\nRETURN { id: id(n), label:head(labels(n)), caption:n.name } as source, { id: id(m), label:head(labels(m)), caption:m.name } as target LIMIT $limit', {limit: neo4j.int(5000)})
+        .then(function (result) {
+
+            const nodes = {}
+            const links = result.records.map(r => {
+                var source = r.get('source');source.id = source.id.toNumber();
+                nodes[source.id] = source;
+                var target = r.get('target');target.id = target.id.toNumber();
+                nodes[target.id] = target;
+                return {source:source.id,target:target.id}
+            });
+            session.close();
+            console.log(links.length+" links loaded in "+(new Date()-start)+" ms.")
+            const gData = { nodes: Object.values(nodes), links: links}
+            const nodeCaption = document.getElementById('node-picture');
+            let mouseX = 0;
+            let mouseY = 0;
+            let boxX = 0;
+            let boxY = 0;
+            const boxOffsetX = 10;
+            const boxOffsetY = 10;
+            const tableBody = document.querySelector("#dataTable tbody");
+            const Graph = ForceGraph3D()(elem)
+                .graphData(gData)
+                .nodeAutoColorBy('label')
+                .nodeLabel(node => `${node.label}: ${node.caption}`)
+
+                // .nodeThreeObject(node => {
+                //     const row = document.createElement('tr');
+                //
+                //     const labelCell = document.createElement('td');
+                //     labelCell.textContent = node.label;
+                //
+                //     const captionCell = document.createElement('td');
+                //     captionCell.textContent = node.caption;
+                //
+                //     row.appendChild(labelCell);
+                //     row.appendChild(captionCell);
+                //
+                //     tableBody.appendChild(row);
+                //     const sprite = new THREE.TextSprite({
+                //         fontSize:5, // 适当调整
+                //         color: 'white',
+                //         text: node.label +"  :  "+ node.caption,
+                //     });
+                //
+                //     const group = new THREE.Group();
+                //     group.add(sprite);
+                //     return group;
+                // })
+                .onNodeHover(node => {
+                    if (node) {
+                        // nodeCaption.value = node.caption;
+                        if (node.label==="Sum"){
+                            iframe.style.width = '300px';
+                            iframe.style.height = '120px';
+                            iframe.style.backgroundColor = 'white';
+                            iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                            src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                        }
+                        else {
+
+                            //iframe.style.width = '150px';
+                            //iframe.style.height = '150px';
+                            //iframe.style.backgroundColor = 'transparent';
+                            //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                            //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+
+
+
+                            iframe.style.width = '900px';
+                            iframe.style.height = '240px';
+                            iframe.style.backgroundColor = 'white';
+                            // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                            iframe.src="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=small"
+                            // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                            src_="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=big"
+                        }
+
+                        iframe.style.display="block"
+
+                    } else {
+                        iframe.style.display="none"
+                        // nodeCaption.value = "";
+                    }
+                    //nodeCaption.style.display = nodeCaption.value ? 'inline-block' : 'none';
+                });
+
+            document.addEventListener('mousemove', e => {
+                if (Graph) {
+                    if (iframe.style.display==="block"){
+                        const x = e.clientX + 100; // 10是文本框与鼠标的水平偏移量
+                        const y = e.clientY - 230; // 10是文本框与鼠标的垂直偏移量
+                        iframe.style.left = x + 'px';
+                        iframe.style.top = y + 'px';
+                    }
+
+                }
+            });
+
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
+</script>
+</body>
