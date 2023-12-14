@@ -230,6 +230,7 @@
 <div id="suggestions"></div>
 
 <script>
+    let isQueryRunning = false; // 标志来跟踪查询状态
     var listener_list =[]
     let clickCount = 0;  // To keep track of how many times the button has been clicked
     function getElementDistanceFromLeftEdge(element) {
@@ -319,6 +320,7 @@
     const session = driver.session({database:"neo4j"});
     const session2 = driver.session({database:"neo4j"});
     var session_attribute = driver.session({database:"neo4j"});
+    var session_get_index = driver.session({database:"neo4j"});
     session2.run("CALL db.labels()")
         .then(function(result) {
             var dropdown = document.getElementById('ai_dropdown'); // if this returns null, the next line will throw an error
@@ -351,7 +353,7 @@
         console.log(src_); // "value2"
     }
 
-    const words = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"];
+    // const words = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"];
 
 
     document.addEventListener('click', function(event) {
@@ -432,17 +434,17 @@
                         console.error(error);
                     });
                     var newOption = document.createElement("option");
-                    newOption.value =  "Search in "+selectedOption;
-                    newOption.text = "Search in "+selectedOption;
+                    // newOption.value =  "Search in "+selectedOption;
+                    // newOption.text = "Search in "+selectedOption;
 
 // 获取 <select> 元素
 //                 var selectElement = document.getElementById("attribute_dropdown");
 
 // 将新选项添加到 <select> 的最前面
-                    document.getElementById(nextId).insertBefore(newOption, document.getElementById(nextId).firstChild);
-
+//                     document.getElementById(nextId).insertBefore(newOption, document.getElementById(nextId).firstChild);
+//
 // 将这个新选项设为默认选中
-                    document.getElementById(nextId).value = "Search in "+selectedOption;
+                    // document.getElementById(nextId).value = "Search in "+selectedOption;
                     update_search();
                 });
                 select_dom.style.width = '200px';
@@ -456,6 +458,25 @@
     }
 
 
+
+
+    async function queryDatabase(condition) {
+        var session_get_index = driver.session({database:"neo4j"});
+
+        try {
+            // 使用 await 等待查询结果
+            const resultList = await session_get_index.run(condition);
+            console.log("resultList", resultList); // 这里是您的列表
+        } catch (error) {
+            console.error("查询数据库时出错:", error);
+        } finally {
+            await session_get_index.close(); // 确保在结束时关闭会话
+        }
+    }
+    function isNumeric(str) {
+        if (typeof str != "string") return false; // 只处理字符串
+        return !isNaN(str) && !isNaN(parseFloat(str));
+    }
     function update_search(){
         const selects = document.querySelectorAll('select');
 
@@ -463,25 +484,59 @@
         const selectIds = Array.from(selects).map(select => select.id);
 
 // 打印所有的 select 元素的 id
+//         MATCH (n:Fields)
+//         WHERE n.name = 'Autonomous Driving'
+//         RETURN n.TrueLabel;
 
-        let condition="WHERE  "
+        let condition=""
+        let index_list=[]
         // WHERE  n.TrueLabel CONTAINS "148"  and  NOT n.redundancy RETURN n.TrueLabel;
         selectIds.forEach((id, index) => {
 
+
             let dropdown_str=document.getElementById(id).value
 
-            if (id.startsWith('attribute_dropdown')){
-                condition+="="+dropdown_str;
-            }else if (id.startsWith('ai_dropdown')){
-                condition+="  n."+dropdown_str;
-                if (index !== 0) {
-                    condition+=" and "
+
+
+            if (id.startsWith('ai_dropdown')){
+                if (!dropdown_str.includes(' ')) {
+                    condition+=`MATCH (n:${dropdown_str})`;
+                }
+                else {
+                    condition+=`MATCH (n:\`${dropdown_str}\`)`;
+                }
+            }else if (id.startsWith('attribute_dropdown')){
+                console.log("document.getElementById(id).value",document.getElementById(id).textContent)
+                if (isNumeric(dropdown_str)){
+                    condition += `WHERE n.name = ${dropdown_str} RETURN n.TrueLabel;`;
+                }else if(dropdown_str.includes("'")) {
+                    condition += `WHERE n.name = "${dropdown_str}" RETURN n.TrueLabel;`;
+                }
+                else {
+
+                    condition += `WHERE n.name = '${dropdown_str}' RETURN n.TrueLabel;`;
                 }
 
+
+                console.log("condition",condition)
+                queryDatabase(condition);
+
+                // session_get_index.run(condition)
+                //     .then(resultList => {
+                //         console.log("resultList",resultList); // 这里是您的列表
+                //     })
+
+
+
+                condition=""
             }
 
+
+
+
         })
-        console.log(condition);
+        // console.log(condition);
+        // console.log("index_list",index_list)
     }
 function session_elem(condition){
     session
