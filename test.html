@@ -1,61 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search Suggestions</title>
-  <style>
-    /* 这里可以添加一些简单的样式 */
-    #suggestions {
-      display: none;
-      border: 1px solid #ccc;
-      max-height: 150px;
-      overflow-y: auto;
+  <title>Neovis.js Simple Example</title>
+  <style type="text/css">
+    html, body {
+      font: 16pt arial;
     }
-    .suggestion-item {
-      padding: 8px;
-      cursor: pointer;
-    }
-    .suggestion-item:hover {
-      background-color: #eee;
+
+    #viz {
+      width: 900px;
+      height: 1900px;
+      border: 1px solid lightgray;
+      font: 22pt arial;
     }
   </style>
+
+  <script src="https://unpkg.com/neovis.js@2.0.2"></script>
+
+  <script type="text/javascript">
+
+    let neoViz;
+
+    function draw() {
+      const config = {
+        containerId: "viz",
+        neo4j: {
+          serverUrl: "bolt://localhost:7687",
+          serverUser: "neo4j",
+          serverPassword: "12345678",
+        },
+        labels: {
+          Character: {
+            // label: "name",
+            // value: "pagerank",
+            // group: "redundancy",
+            [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
+              function: {
+                title: (node) => {
+                  // 返回带有label和name的HTML字符串
+                  console.log(node)
+                  console.log(node.properties.name)
+                  return `<div>
+                      <strong>Label:</strong> ${node.labels[0]}<br>
+                      <strong>Name:</strong> ${node.properties.name}
+                    </div>`;
+                }
+              }
+            }
+          }
+        },
+        // relationships: {
+        //   INTERACTS: {
+        //     value: "weight"
+        //   }
+        // },
+        initialCypher: "MATCH p=()-[r:Index]->() RETURN p"
+      };
+
+      neoViz = new NeoVis.default(config);
+      neoViz.render();
+    }
+  </script>
 </head>
-<body>
-<input type="text" id="searchInput" placeholder="Type to search...">
-<button onclick="search()">Search</button>
-<div id="suggestions"></div>
+<body onload="draw()">
+<div id="viz"></div>
 
-<script>
-  const words = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"];
-
-  document.getElementById("searchInput").addEventListener("input", function() {
-    const query = this.value.toLowerCase();
-    const suggestions = document.getElementById("suggestions");
-    suggestions.innerHTML = "";
-    let hasSuggestions = false;
-
-    words.forEach(word => {
-      if (word.includes(query) && query !== "") {
-        const div = document.createElement("div");
-        div.textContent = word;
-        div.className = "suggestion-item";
-        div.onclick = function() {
-          document.getElementById("searchInput").value = word;
-          suggestions.style.display = "none";
-        }
-        suggestions.appendChild(div);
-        hasSuggestions = true;
-      }
-    });
-
-    suggestions.style.display = hasSuggestions ? "block" : "none";
-  });
-
-  function search() {
-    // 这里可以添加搜索按钮的功能，例如发送请求到服务器
-    alert("Searching for: " + document.getElementById("searchInput").value);
-  }
-</script>
 </body>
 </html>

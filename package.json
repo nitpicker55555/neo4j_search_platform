@@ -1,0 +1,29 @@
+{
+  "name": "3dgraph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@egjs/hammerjs": "^2.0.17",
+    "component-emitter": "^2.0.0",
+    "keycharm": "^0.4.0",
+    "neo4j-driver": "^5.15.0",
+    "neovis.js": "^2.1.0",
+    "uuid": "^9.0.1",
+    "vis-data": "^7.1.9",
+    "vis-util": "^5.0.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitpicker55555/neo4j_search_platform.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nitpicker55555/neo4j_search_platform/issues"
+  },
+  "homepage": "https://github.com/nitpicker55555/neo4j_search_platform#readme"
+}
