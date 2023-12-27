@@ -25,15 +25,15 @@
       const config = {
         containerId: "viz",
         neo4j: {
-          serverUrl: "bolt://localhost:7687",
+          serverUrl: "bolt://3.84.34.237:7687",
           serverUser: "neo4j",
-          serverPassword: "12345678",
+          serverPassword: "worksheet-lookouts-bear",
         },
         labels: {
           Character: {
-            label: "name",
-            value: "pagerank",
-            group: "community",
+            // label: "name",
+            // value: "pagerank",
+            group: "name",
             [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
               function: {
                 title: (node) => {
@@ -49,12 +49,12 @@
             }
           }
         },
-        relationships: {
-          INTERACTS: {
-            value: "weight"
-          }
-        },
-        initialCypher: "MATCH (n)-[r:INTERACTS]->(m) RETURN *"
+        // relationships: {
+        //   INTERACTS: {
+        //     value: "weight"
+        //   }
+        // },
+        initialCypher: "MATCH p=()-[r:INTERACTS]->() RETURN p LIMIT 25"
       };
 
       neoViz = new NeoVis.default(config);

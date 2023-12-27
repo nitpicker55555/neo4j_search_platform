@@ -22,6 +22,7 @@
     let neoViz;
 
     function draw() {
+      let allLabels =['Data','Place']
       const config = {
         containerId: "viz",
         neo4j: {
@@ -30,36 +31,80 @@
           serverPassword: "12345678",
         },
         labels: {
-          Character: {
-            // label: "name",
-            // value: "pagerank",
-            // group: "redundancy",
-            [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
-              function: {
-                title: (node) => {
-                  // 返回带有label和name的HTML字符串
-                  console.log(node)
-                  console.log(node.properties.name)
-                  return `<div>
-                      <strong>Label:</strong> ${node.labels[0]}<br>
-                      <strong>Name:</strong> ${node.properties.name}
-                    </div>`;
-                }
-              }
-            }
-          }
+
         },
+        // labels: {
+        //   Character: {
+        //     // label: "name",
+        //     // value: "pagerank",
+        //     group: "name",
+        //     [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
+        //       function: {
+        //         title: (node) => {
+        //           // 返回带有label和name的HTML字符串
+        //           // console.log(node)
+        //           // console.log(node.labels[0])
+        //           return `<div>
+        //               <strong>Label:</strong> ${node.labels[0]}<br>
+        //               <strong>Name:</strong> ${node.properties.name}
+        //             </div>`;
+        //         }
+        //       }
+        //     }
+        //   }
+        // },
+
         // relationships: {
         //   INTERACTS: {
         //     value: "weight"
         //   }
         // },
-        initialCypher: "MATCH p=()-[r:Index]->() RETURN p"
+        // "MATCH (n)\n" +
+        // "WHERE (n.TrueLabel CONTAINS \"14\") AND NOT n.redundancy\n" +
+        //         "RETURN n"
+        initialCypher:"MATCH p=()-[r:Place]->() RETURN p LIMIT 25"
       };
-
+      allLabels.forEach(label => {
+        config.labels[label] = {
+          label: "name",
+          group: "name",
+          [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
+            function: {
+              title: (node) => {
+                return `<div>
+                <strong>Label:</strong> ${node.labels[0]}<br>
+                <strong>Name:</strong> ${node.properties.name}
+              </div>`;
+              }
+            }
+          }
+        };
+      });
       neoViz = new NeoVis.default(config);
       neoViz.render();
+      // 等待图表渲染完成后添加事件监听器
+      neoViz.registerOnEvent("completed", () => {
+        // 当节点被点击时触发
+        neoViz.network.on("click", function (params) {
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0]
+            const nodeData = neoViz.nodes.get(nodeId);
+            console.log("Clicked node ID:", nodeData);
+            // console.log("Clicked node ID:", nodeData.properties.name);
+            // 在这里添加您的点击处理逻辑
+          }
+        });
+
+        // 当鼠标悬停在节点上时触发
+        neoViz.network.on("hoverNode", function (params) {
+          console.log("Hovered over node ID:", params.node);
+          // 在这里添加您的悬停处理逻辑
+        });
+      });
     }
+    // 当节点被点击时触发
+
+
   </script>
 </head>
 <body onload="draw()">
