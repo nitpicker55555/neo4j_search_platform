@@ -75,14 +75,17 @@
         left: 450px;
     }
 
+    #ai-caption {
+        margin-right: 0px; /* 调整这个值以改变距离 */
+    }
 
     /*#ai-caption {*/
     /*    margin-right: 20px; !* space between ai-caption and ai_dropdown *!*/
     /*}*/
 
-    /*#ai_dropdown {*/
-    /*    margin-right: 200px; !* space between ai_dropdown and searchInput *!*/
-    /*}*/
+    #ai_dropdown {
+        margin-left: 0px; /* space between ai_dropdown and searchInput */
+    }
 
     /*#ai_dropdown{*/
     /*    position: absolute;*/
@@ -126,21 +129,17 @@
         top: 40px;
         /* other styles as needed... */
     }
-    #ai-caption {
 
-        margin-right: 20px; /* space between ai-caption and ai_dropdown */
-    }
-
-    #ai_dropdown {
-        width: 200px;
-        margin-right: 20px; /* space between ai_dropdown and searchInput */
-    }
+    /*#ai_dropdown {*/
+    /*    width: 200px;*/
+    /*    margin-right: 20px; !* space between ai_dropdown and searchInput *!*/
+    /*}*/
     #attribute_dropdown {
         width: 200px;
         margin-right: 20px; /* space between ai_dropdown and searchInput */
     }
 
-    /*#ai_button{*/
+    /*#plus_button{*/
     /*    left: 600px;*/
     /*    position: absolute;*/
     /*    z-index: 999;*/
@@ -214,7 +213,7 @@
     <div class="checkbox-item">
         <input type="checkbox" id="check3d">
         <label for="check3d">3D</label>
-        <button id="ai_button">+</button>
+        <button id="plus_button">+</button>
         <button id="minus_button">-</button>
         <label  id="result">1 Case found</label>
     </div>
@@ -284,7 +283,7 @@
         // 如果元素是相对定位或静态定位，您可能需要使用 marginLeft
         // element2.style.marginLeft = distance + 'px';
     }
-    document.getElementById('ai_button').addEventListener('click', function() {
+    document.getElementById('plus_button').addEventListener('click', function() {
         // Increment the click count
         clickCount++;
 
@@ -339,7 +338,7 @@
         var lastChild = document.body.lastChild;
 
 // 从 document.body 中移除这个子节点
-        if (totalChildElements>9){
+        if (totalChildElements>10){
             document.body.removeChild(lastChild);
         }
 
