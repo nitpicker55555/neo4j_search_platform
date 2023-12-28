@@ -44,6 +44,14 @@
         /*left: 480px;*/
         font-size: small;
     }
+    .fullscreen-svg {
+        width: 100vw;   /* 视口宽度 */
+        height: 100vh;  /* 视口高度 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
     #label_check{
         position: absolute;
         /*font-style: italic;*/
@@ -171,17 +179,20 @@
     <script src="https://unpkg.com/@seregpie/three.text-sprite"></script>
     <script src="//unpkg.com/3d-force-graph"></script>
     <script src="https://unpkg.com/neo4j-driver"></script>
-
+    <script src="https://unpkg.com/neovis.js@2.0.2"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <!--<script src="../../dist/3d-force-graph.js"></script>-->
 </head>
 <title>3D Knowledge Graph Platform</title>
 <body>
 <input type="text" id="node-caption" />
-
+<svg id="3d-graph_svg"></svg>
 <!--<div id="suggestions2"></div>-->
 <div id="3d-graph"></div>
 
-<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>
+
+<!--<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>-->
+<iframe id="paralle" ></iframe>
 
 <label id="Caption">Ai ethics visual analysis platform</label>
 
@@ -230,6 +241,17 @@
 <div id="suggestions"></div>
 
 <script>
+    // const div = document.getElementById('3d-graph');
+    // const width = div.clientWidth;
+    // const height = div.clientHeight;
+    //
+    // // 创建 SVG 容器
+    // const svg = d3.select("body").append("svg")
+    //     .attr("width", width)
+    //     .attr("height", height)
+    //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+    //     .append("g");
+    var svg_num=0
     let isQueryRunning = false; // 标志来跟踪查询状态
     var listener_list =[]
     let clickCount = 0;  // To keep track of how many times the button has been clicked
@@ -585,6 +607,160 @@
         });
     }
 
+
+
+    function two_d(nodes, links) {
+        const idToColorMap = {};
+        // 设置 SVG 尺寸
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        console.log(nodes)
+        // const width = 800, height = 600;
+        //
+        // // 创建 SVG 容器
+        // const svg = d3.select("body").append("svg")
+        //     .attr("width", width)
+        //     .attr("height", height)
+        //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+        //     .append("g");
+        //
+        // // 创建力导向图
+        //
+        // // 创建 SVG 容器
+        let svg = d3.select("body").select("svg.fullscreen-svg");
+        d3.select("body").selectAll("svg").remove();
+
+
+        svg = d3.select("body").append("svg")
+            .attr("class", "fullscreen-svg") // 添加类名以便使用 CSS 设置样式
+            // .attr("pointer-events", "all") // 确保 SVG 可以捕捉鼠标事件.
+            //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
+            //     .attr("height", "100%")
+            .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+        .append("g");
+
+
+        // const container = svg.append("g");
+        // const svg = d3.select("#3d-graph")
+        //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
+        //     .attr("height", "100%")
+        //     .attr("pointer-events", "all") // 确保 SVG 可以捕捉鼠标事件.
+        // .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+
+        // 创建力导向图
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // 创建链接线
+        const link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey");
+
+        // 创建节点
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("g")
+            // .enter().append("circle")
+            .attr("r", 5)
+            // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("click", clicked); // 假设有一个 clicked 函数来处理点击事件
+        // const node = svg.append("g")
+        //     .attr("class", "nodes")
+        //     .selectAll("g")
+        //     .data(nodes)
+        //     .enter().append("g");
+
+        const circles = node.append("circle")
+            .attr("r", 5)
+            .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("click", clicked); // 绑定点击事件
+
+        // 在节点旁添加文本
+        const labels = node.append("text")
+            .text(d => nodes.find(node => node.id === d.id).label) // 假设每个节点对象有一个 'id' 属性作为名称
+            .attr("x", 6)
+            .attr("y", 3);
+
+        // 节点拖动函数
+        // ... [之前的拖动函数代码]
+
+        // 节点点击事件处理函数
+
+
+        function getColorById(id) {
+            // 如果这个 id 已经有一个颜色，就返回这个颜色
+            if (idToColorMap[id]) {
+                return idToColorMap[id];
+            }
+
+            // 否则，生成一个新的随机颜色
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`; // 生成一个 HSL 颜色
+            idToColorMap[id] = color;
+            return color;
+        }
+
+        function clicked(event, d) {
+            // 这里定义点击节点时的行为
+            const nodeWithId223 = nodes.find(node => node.id === d.id);
+            // const captionOfNode223 =  : undefined;
+
+            // 例如：在控制台打印节点的信息
+            console.log(`caption: ${nodeWithId223.caption}`+`\nlabel: ${nodeWithId223.label}`);
+            console.log();
+        }
+
+        // 节点拖动函数
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 缩放函数
+        function zoomed(event) {
+            svg.attr("transform", event.transform);
+        }
+
+        // 更新节点和链接的位置
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+    }
+
     function session_elem(condition){
         var session = driver.session({database:"neo4j"});
 
@@ -595,8 +771,12 @@
                 // RETURN { id: id(n), label:head(labels(n)), caption:n.name } as source, { id: id(m), label:head(labels(m)), caption:m.name } as target LIMIT $limit`, {limit: neo4j.int(5000)})
             //
             .run('MATCH (n)-->(m) \n' +condition+
-                '\nRETURN { id: id(n), label:head(labels(n)), caption:n.name, TrueLabel:n.TrueLabel } as source, { id: id(m), label:head(labels(m)), caption:m.name, TrueLabel:m.TrueLabel } as target LIMIT $limit', {limit: neo4j.int(5000)})
+                '\nRETURN { id: id(n), label:head(labels(n)), caption:n.name, TrueLabel:n.TrueLabel } as source, { id: id(m), label:head(labels(m)), caption:m.name, TrueLabel:m.TrueLabel } as target LIMIT $limit', {limit: neo4j.int(500)})
+            // .run("MATCH (n)\n" +
+            //     "UNWIND labels(n) AS label\n" +
+            //     "RETURN DISTINCT label\n")
             .then(function (result) {
+
                 console.log("result",result)
                 const nodes = {}
                 const links = result.records.map(r => {
@@ -607,95 +787,66 @@
                     return {source:source.id,target:target.id}
                 });
                 session.close();
-                console.log(links.length+" links loaded in "+(new Date()-start)+" ms.")
-                const gData = { nodes: Object.values(nodes), links: links}
-                const nodeCaption = document.getElementById('node-picture');
-                let mouseX = 0;
-                let mouseY = 0;
-                let boxX = 0;
-                let boxY = 0;
-                const boxOffsetX = 10;
-                const boxOffsetY = 10;
-                const tableBody = document.querySelector("#dataTable tbody");
-                const Graph = ForceGraph3D()(elem)
-                    .graphData(gData)
-                    .nodeAutoColorBy('label')
-                    .nodeLabel(node => `${node.label}: ${node.caption}`)齐奥塞斯库
-                    .onNodeHover(node => {
-                        if (node) {
-                            // nodeCaption.value = node.caption;
-                            if (node.label==="Sum"){
-                                iframe.style.width = '300px';
-                                iframe.style.height = '120px';
-                                iframe.style.backgroundColor = 'white';
-                                iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                                src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+
+                two_d( Object.values(nodes), links);
+                    // 你的后续代码
+
+
+
+                function three_d(){
+
+                    console.log(links.length+" links loaded in "+(new Date()-start)+" ms.")
+                    const gData = { nodes: Object.values(nodes), links: links}
+                    const nodeCaption = document.getElementById('node-picture');
+                    let mouseX = 0;
+                    let mouseY = 0;
+                    let boxX = 0;
+                    let boxY = 0;
+                    const boxOffsetX = 10;
+                    const boxOffsetY = 10;
+                    const tableBody = document.querySelector("#dataTable tbody");
+                    const Graph = ForceGraph3D()(elem)
+                        .graphData(gData)
+                        .nodeAutoColorBy('label')
+                        .nodeLabel(node => `${node.label}: ${node.caption}`)
+                        .onNodeHover(node => {
+                            if (node) {
+                                //
+                                // if (node.label==="Sum"){
+                                //     iframe.style.width = '300px';
+                                //     iframe.style.height = '120px';
+                                //     iframe.style.backgroundColor = 'white';
+                                //     iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                                //     src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                                // }
+                                // else {
+                                //
+                                //     //iframe.style.width = '150px';
+                                //     //iframe.style.height = '150px';
+                                //     //iframe.style.backgroundColor = 'transparent';
+                                //     //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                                //     //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                                //
+                                //
+                                //
+                                //     iframe.style.width = '900px';
+                                //     iframe.style.height = '240px';
+                                //     iframe.style.backgroundColor = 'white';
+                                //     // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                                //     iframe.src="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=small"
+                                //     // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                                //     src_="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=big"
+                                // }
+                                //
+                                // iframe.style.display="block"
+
+                            } else {
+                                iframe.style.display="none"
+                                // nodeCaption.value = "";
                             }
-                            else {
-
-                                //iframe.style.width = '150px';
-                                //iframe.style.height = '150px';
-                                //iframe.style.backgroundColor = 'transparent';
-                                //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                                //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-
-
-
-                                iframe.style.width = '900px';
-                                iframe.style.height = '240px';
-                                iframe.style.backgroundColor = 'white';
-                                // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                                iframe.src="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=small"
-                                // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                                src_="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=big"
-                            }
-
-                            iframe.style.display="block"
-
-                        } else {
-                            iframe.style.display="none"
-                            // nodeCaption.value = "";
-                        }
-                        //nodeCaption.style.display = nodeCaption.value ? 'inline-block' : 'none';
-                    });
-                const checkbox = document.getElementById('show_labels');
-                if (checkbox.checked) {
-                    // 启用 .nodeThreeObject 属性
-                    update_row();
-                } else {
-                    // 禁用 .nodeThreeObject 属性
-                    Graph.nodeThreeObject(null); // 将 .nodeThreeObject 设置为 null
-                }
-                function update_row(){
-                    tableBody.innerHTML = "";
-                    Graph.nodeThreeObject(node => {
-
-
-                        const row = document.createElement('tr');
-
-                        const labelCell = document.createElement('td');
-                        labelCell.textContent = node.TrueLabel;
-
-                        const captionCell = document.createElement('td');
-                        captionCell.textContent = node.caption;
-
-
-                        row.appendChild(labelCell);
-                        row.appendChild(captionCell);
-                        tableBody.appendChild(row);
-                        // const sprite = new THREE.TextSprite({
-                        //     fontSize:5, // 适当调整
-                        //     color: 'white',
-                        //     text: node.label +"  :  "+ node.caption,
-                        // });
-
-                        // const group = new THREE.Group();
-                        // group.add(sprite);
-                        // return group;
-                    })
-                }
-
-                checkbox.addEventListener('change', function () {
+                            //nodeCaption.style.display = nodeCaption.value ? 'inline-block' : 'none';
+                        });
+                    const checkbox = document.getElementById('show_labels');
                     if (checkbox.checked) {
                         // 启用 .nodeThreeObject 属性
                         update_row();
@@ -703,18 +854,57 @@
                         // 禁用 .nodeThreeObject 属性
                         Graph.nodeThreeObject(null); // 将 .nodeThreeObject 设置为 null
                     }
-                });
-                document.addEventListener('mousemove', e => {
-                    if (Graph) {
-                        if (iframe.style.display==="block"){
-                            const x = e.clientX + 100; // 10是文本框与鼠标的水平偏移量
-                            const y = e.clientY - 230; // 10是文本框与鼠标的垂直偏移量
-                            iframe.style.left = x + 'px';
-                            iframe.style.top = y + 'px';
-                        }
+                    function update_row(){
+                        tableBody.innerHTML = "";
+                        Graph.nodeThreeObject(node => {
 
+
+                            const row = document.createElement('tr');
+
+                            const labelCell = document.createElement('td');
+                            labelCell.textContent = node.TrueLabel;
+
+                            const captionCell = document.createElement('td');
+                            captionCell.textContent = node.caption;
+
+
+                            row.appendChild(labelCell);
+                            row.appendChild(captionCell);
+                            tableBody.appendChild(row);
+                            // const sprite = new THREE.TextSprite({
+                            //     fontSize:5, // 适当调整
+                            //     color: 'white',
+                            //     text: node.label +"  :  "+ node.caption,
+                            // });
+
+                            // const group = new THREE.Group();
+                            // group.add(sprite);
+                            // return group;
+                        })
                     }
-                });
+
+                    checkbox.addEventListener('change', function () {
+                        if (checkbox.checked) {
+                            // 启用 .nodeThreeObject 属性
+                            update_row();
+                        } else {
+                            // 禁用 .nodeThreeObject 属性
+                            Graph.nodeThreeObject(null); // 将 .nodeThreeObject 设置为 null
+                        }
+                    });
+                    document.addEventListener('mousemove', e => {
+                        if (Graph) {
+                            if (iframe.style.display==="block"){
+                                const x = e.clientX + 100; // 10是文本框与鼠标的水平偏移量
+                                const y = e.clientY - 230; // 10是文本框与鼠标的垂直偏移量
+                                iframe.style.left = x + 'px';
+                                iframe.style.top = y + 'px';
+                            }
+
+                        }
+                    });
+                }
+
 
             })
             .catch(function (error) {

@@ -62,7 +62,9 @@
         // "MATCH (n)\n" +
         // "WHERE (n.TrueLabel CONTAINS \"14\") AND NOT n.redundancy\n" +
         //         "RETURN n"
-        initialCypher:"MATCH p=()-[r:Place]->() RETURN p LIMIT 25"
+        initialCypher:"MATCH (n)-[r]->(m)\n" +
+                "WHERE (n.TrueLabel CONTAINS \"148\") AND NOT n.redundancy\n" +
+                "RETURN r,n"
       };
       allLabels.forEach(label => {
         config.labels[label] = {
@@ -89,7 +91,9 @@
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0]
             const nodeData = neoViz.nodes.get(nodeId);
-            console.log("Clicked node ID:", nodeData);
+            // console.log("Clicked node ID:", nodeData);
+            console.log("Clicked node ID:", nodeData.raw.labels[0]);//label
+            console.log("Clicked node ID:", nodeData.label);//caption
             // console.log("Clicked node ID:", nodeData.properties.name);
             // 在这里添加您的点击处理逻辑
           }

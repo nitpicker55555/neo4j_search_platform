@@ -20,6 +20,17 @@
   <script type="text/javascript">
 
     let neoViz;
+    function customCaption(node) {
+      // 假设我们使用的属性是 'name'
+      let name = node.properties.name;
+
+      // 检查name是否存在且长度足够
+      if (name && name.length >= 3) {
+        return name.substring(0, 3); // 返回前三个字符
+      } else {
+        return name; // 如果name太短，就返回整个name
+      }
+    }
 
     function draw() {
       const config = {
@@ -31,8 +42,9 @@
         },
         labels: {
           Character: {
-            // label: "name",
+
             // value: "pagerank",
+            label: "name",
             group: "name",
             [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
               function: {
@@ -42,7 +54,7 @@
                   // console.log(node.labels[0])
                   return `<div>
                       <strong>Label:</strong> ${node.labels[0]}<br>
-                      <strong>Name:</strong> ${node.properties.name}
+                      <strong>Name:</strong> ${customCaption(node)}
                     </div>`;
                 }
               }
