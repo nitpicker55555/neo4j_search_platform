@@ -97,30 +97,35 @@
           .attr("height", h + m[0] + m[2])
           .append("g")
           .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
-    var case_index = paramMap.param2.match(/\d+/)[0];
+    // var case_index = paramMap.param2.match(/\d+/)[0];
 
     // 替换"ai1_zh.csv"中的数字
     // var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
-    var filename = "ai_kg.csv"
-    console.log(case_index,"filename")
-    console.log(filename,"filename")
+    var filename = "KG_cases_labeled.csv"
+    console.log("case_index",paramMap.param2)
+    // console.log(filename,"filename")
         d3.csv(filename, function(error, cities) {
     if (error) throw error;
 
+    const str_list=["Title","Fields","Response","Description"]
+
     // Extract the list of dimensions and create a scale for each.
     x.domain(dimensions = d3.keys(cities[0]).filter(function(d) {   //filter掉特定的列
-      return d != "City" && (y[d] = d3.scale.linear()
+      return !str_list.includes(d) && (y[d] = d3.scale.linear()
               .domain(d3.extent(cities, function(p) { return +p[d]; }))  // extend返回最大最小值
               .range([h, 0]));
     }));
    if (paramMap.param1!=="Sum"){
 
        str_num = paramMap.param2.replace("[", "").replace("]", "");  // 去掉括号
-       var arr = str_num.split(",");  // 使用逗号切分字符串
+       // var arr = str_num.split(",");  // 使用逗号切分字符串
        //var selectedRows =[cities.slice(parseInt(arr[0]),parseInt(arr[0])+1)[0],cities.slice(parseInt(arr[1]),parseInt(arr[1])+1)[0]]
        var selectedRows = cities.filter(function(row) {
            return cities;  // 假设'cluster'列是字符串类型
        });
+
+
+       selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
        console.log((selectedRows),"selectedRows")
        // var selectedRows = cities.slice(parseInt(12),parseInt(12)+1)  //选取特定行数据
        // var selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常

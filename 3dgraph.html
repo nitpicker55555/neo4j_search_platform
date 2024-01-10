@@ -199,8 +199,8 @@
 <div id="3d-graph"></div>
 
 
-<!--<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>-->
-<iframe id="paralle" ></iframe>
+<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>
+<!--<iframe id="paralle" ></iframe>-->
 
 <label id="Caption">Ai ethics visual analysis platform</label>
 
@@ -489,7 +489,6 @@
 
 
 
-
     async function queryDatabase(condition) {
         var session_get_index = driver.session({database:"neo4j"});
 
@@ -614,7 +613,10 @@
             return arr2.includes(element);
         });
     }
-
+    function get_truelabel_index(str) {
+        const parts = str.split("_");
+        return parts[parts.length - 1];
+    }
 
 
     function two_d(nodes, links) {
@@ -696,14 +698,11 @@
                 .on("end", dragended))
             .on("click", clicked); // 假设有一个 clicked 函数来处理点击事件
 
-        function getLastPart(str) {
-            const parts = str.split("_");
-            return parts[parts.length - 1];
-        }
+
 
         const circles = node.append("circle")
             .attr("r", 5)
-            .attr("fill", d => getColorById(getLastPart(nodes.find(node => node.id === d.id).TrueLabel))) // 为每个节点设置颜色
+            .attr("fill", d => getColorById(get_truelabel_index(nodes.find(node => node.id === d.id).TrueLabel))) // 为每个节点设置颜色
             // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
 
 
@@ -821,33 +820,33 @@
             .onNodeHover(node => {
                 if (node) {
                     //
-                    // if (node.label==="Sum"){
-                    //     iframe.style.width = '300px';
-                    //     iframe.style.height = '120px';
-                    //     iframe.style.backgroundColor = 'white';
-                    //     iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                    //     src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                    // }
-                    // else {
-                    //
-                    //     //iframe.style.width = '150px';
-                    //     //iframe.style.height = '150px';
-                    //     //iframe.style.backgroundColor = 'transparent';
-                    //     //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                    //     //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                    //
-                    //
-                    //
-                    //     iframe.style.width = '900px';
-                    //     iframe.style.height = '240px';
-                    //     iframe.style.backgroundColor = 'white';
-                    //     // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                    //     iframe.src="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=small"
-                    //     // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                    //     src_="http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=part1&param3=big"
-                    // }
-                    //
-                    // iframe.style.display="block"
+                    if (node.label==="Sum"){
+                        iframe.style.width = '300px';
+                        iframe.style.height = '120px';
+                        iframe.style.backgroundColor = 'white';
+                        iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                        src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                    }
+                    else {
+
+                        //iframe.style.width = '150px';
+                        //iframe.style.height = '150px';
+                        //iframe.style.backgroundColor = 'transparent';
+                        //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                        //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+
+
+
+                        iframe.style.width = '900px';
+                        iframe.style.height = '240px';
+                        iframe.style.backgroundColor = 'white';
+                        // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                        iframe.src=`http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=small`
+                        // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+                        src_=`http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=big`
+                    }
+
+                    iframe.style.display="block"
 
                 } else {
                     iframe.style.display="none"
