@@ -217,6 +217,9 @@
         <button id="minus_button">-</button>
         <label  id="result">1 Case found</label>
     </div>
+    <form action="/second">
+        <button type="submit">Add data</button>
+    </form>
 </div>
 <div class="element-group">
     <label for="ai_dropdown" id="ai-caption">Label:</label>
@@ -226,7 +229,7 @@
     <select id="attribute_dropdown">
         <option value="AI Ethics" selected>Select labels</option>
     </select>
-<!--    <input type="text" id="searchInput" placeholder="Search in label"/>-->
+    <!--    <input type="text" id="searchInput" placeholder="Search in label"/>-->
 
 </div>
 
@@ -260,6 +263,7 @@
     //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
     //     .append("g");
     var svg_num=0
+
     let isQueryRunning = false; // 标志来跟踪查询状态
     var listener_list =[]
     let clickCount = 0;  // To keep track of how many times the button has been clicked
@@ -653,7 +657,7 @@
             //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
             //     .attr("height", "100%")
             .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
-        .append("g");
+            .append("g");
         // let svgRect = svg.getBoundingClientRect();
         let table_head=document.getElementById('dataTable')
         // let table = document.querySelector("#dataTable tbody");
@@ -703,7 +707,7 @@
         const circles = node.append("circle")
             .attr("r", 5)
             .attr("fill", d => getColorById(get_truelabel_index(nodes.find(node => node.id === d.id).TrueLabel))) // 为每个节点设置颜色
-            // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
+        // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
 
 
         // 在节点旁添加文本
@@ -919,9 +923,9 @@
 
         session
             // .run(
-                // `MATCH (n)-->(m)
-                // WHERE  n.TrueLabel CONTAINS "148" or n.TrueLabel CONTAINS "123" and  NOT n.redundancy
-                // RETURN { id: id(n), label:head(labels(n)), caption:n.name } as source, { id: id(m), label:head(labels(m)), caption:m.name } as target LIMIT $limit`, {limit: neo4j.int(5000)})
+            // `MATCH (n)-->(m)
+            // WHERE  n.TrueLabel CONTAINS "148" or n.TrueLabel CONTAINS "123" and  NOT n.redundancy
+            // RETURN { id: id(n), label:head(labels(n)), caption:n.name } as source, { id: id(m), label:head(labels(m)), caption:m.name } as target LIMIT $limit`, {limit: neo4j.int(5000)})
             //
             .run('MATCH (n)-->(m) \n' +condition+
                 '\nRETURN { id: id(n), label:head(labels(n)), caption:n.name, TrueLabel:n.TrueLabel } as source, { id: id(m), label:head(labels(m)), caption:m.name, TrueLabel:m.TrueLabel } as target LIMIT $limit', {limit: neo4j.int(500)})
@@ -971,10 +975,10 @@
 
             })
             .catch(function (error) {
-                console.log(error);
-            }
+                    console.log(error);
+                }
             );
-}
+    }
 
 </script>
 </body>
