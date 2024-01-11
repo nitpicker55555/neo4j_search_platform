@@ -199,7 +199,7 @@
 <div id="3d-graph"></div>
 
 
-<iframe id="paralle" src="http://localhost:63342/3dgraph/paralle.html?_ijt=efq3rag27k95iltm337jb1a0fd&_ij_reload=RELOAD_ON_SAVE"></iframe>
+<iframe id="paralle" src="{{ url_for('iframe_page') }}"></iframe>
 <!--<iframe id="paralle" ></iframe>-->
 
 <label id="Caption">Ai ethics visual analysis platform</label>
@@ -295,7 +295,7 @@
 
 // 获取 document.body 的子元素总数，仅包括元素节点
         var totalChildElements = document.body.children.length;
-        clickCount=totalChildElements-9
+        clickCount=totalChildElements-8
         // console.log("Total child nodes: " + totalChildNodes);
         console.log("Total child elements: " + totalChildElements);
         console.log('clickCount'+clickCount)
@@ -342,11 +342,13 @@
         var lastChild = document.body.lastChild;
 
 // 从 document.body 中移除这个子节点
-        if (totalChildElements>10){
+        if (totalChildElements>9){
             document.body.removeChild(lastChild);
         }
 
     });
+    // console.log(getNumber,"asd")
+
 
     const elem = document.getElementById('3d-graph');
     elem.style.zIndex=1;
@@ -374,7 +376,12 @@
         }).catch(error => {
         console.error(error);
     });
-
+    query_max_index().then(result => {
+        maxNumber= result//
+        document.getElementById('result').textContent=(maxNumber.toString()+" Cases found")
+    }).catch(error => {
+        console.error('Promise rejected:', error);
+    });
     const start = new Date()
     var iframe = document.getElementById("paralle");
     iframe.scrolling="no";
@@ -824,14 +831,21 @@
             .onNodeHover(node => {
                 if (node) {
                     //
+                    // console.log("hover1")
+                    var param1 = node.label;
+                    var param2 = node.caption;
                     if (node.label==="Sum"){
                         iframe.style.width = '300px';
                         iframe.style.height = '120px';
                         iframe.style.backgroundColor = 'white';
-                        iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                        src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
+
+                        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent(param1) + "&param2=" + encodeURIComponent(param2) + "&param3=" + encodeURIComponent("small");
+                        src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent(param1) + "&param2=" + encodeURIComponent(param2) + "&param3=" + encodeURIComponent("big");
+                        // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
+                        // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
                     }
                     else {
+                        // console.log("hover2")
 
                         //iframe.style.width = '150px';
                         //iframe.style.height = '150px';
@@ -844,15 +858,18 @@
                         iframe.style.width = '900px';
                         iframe.style.height = '240px';
                         iframe.style.backgroundColor = 'white';
+                        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("AI_case") + "&param2=" + encodeURIComponent(get_truelabel_index(node.TrueLabel)) + "&param3=" + encodeURIComponent("small");
+                        src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("AI_case") + "&param2=" + encodeURIComponent(get_truelabel_index(node.TrueLabel)) + "&param3=" + encodeURIComponent("big");
                         // iframe.src="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
-                        iframe.src=`http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=small`
+                        // iframe.src=`http://localhost:63342/3dgraph/static/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=small`
                         // src_="http://localhost:63342/3dgraph/paralle.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                        src_=`http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=big`
+                        // src_=`http://localhost:63342/3dgraph/paralle.html?param1=AI_case&param2=${get_truelabel_index(node.TrueLabel)}&param3=big`
                     }
 
                     iframe.style.display="block"
 
                 } else {
+                    // console.log("no hover")
                     iframe.style.display="none"
                     // nodeCaption.value = "";
                 }
@@ -917,6 +934,26 @@
 
             }
         });
+    }
+    async function query_max_index() {
+        const query = 'MATCH (n:Index) RETURN n.name AS name';
+        var session_get_index = driver.session({database:"neo4j"});
+
+        try {
+            // 使用 await 等待查询结果
+            const resultList = await session_get_index.run(query);
+
+            const numbers = resultList.records.map(record => parseFloat(record.get('name'))).filter(num => !isNaN(num));
+            console.log("resultList", numbers,Math.max(...numbers)); // 这里是您的列表
+
+// 打印新列表以验证结果
+//             console.log(newList);
+            return Math.max(...numbers);
+        } catch (error) {
+            console.error("查询数据库时出错:", error);
+        } finally {
+            await session_get_index.close(); // 确保在结束时关闭会话
+        }
     }
     function session_elem(condition){
         var session = driver.session({database:"neo4j"});

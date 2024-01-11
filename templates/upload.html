@@ -124,12 +124,25 @@
             .catch((error) => {
               console.error('Error:', error);
             });
+    alert("Data added successfully")
+    var textInputs = document.querySelectorAll('#form input[type="text"]');
+    textInputs.forEach(function(input) {
+      var label = input.previousElementSibling;
+      if (label && label.tagName === 'LABEL' &&  !label.textContent.trim().startsWith('1. Index:')) {
+        input.value = ""; // Remove colon and trailing spaces
+      }
+      if (label && label.tagName === 'LABEL' && label.textContent.trim().startsWith('1. Index:')) {
+        input.value = parseInt(input.value)+1
+        // input.readOnly/ = true;
+      }
+    });
+
   });
   document.getElementById('fillBtn').addEventListener('click', function() {
     var textInputs = document.querySelectorAll('#form input[type="text"]');
     textInputs.forEach(function(input) {
       var label = input.previousElementSibling;
-      if (label && label.tagName === 'LABEL') {
+      if (label && label.tagName === 'LABEL' &&  !label.textContent.trim().startsWith('1. Index:')) {
         input.value = label.textContent.replace(/:\s*$/, ''); // Remove colon and trailing spaces
       }
     });
@@ -138,8 +151,8 @@
      // const getNumber=  queryDatabase();
      // console.log(getNumber,"asd")
      queryDatabase().then(result => {
-       maxNumber= result// This will log 12221 to the console
-       // console.log(result)
+       maxNumber= result//
+
        // console.log(maxNumber)
        var inputs = document.querySelectorAll('#form input, #form select');
        inputs.forEach(function(input) {
