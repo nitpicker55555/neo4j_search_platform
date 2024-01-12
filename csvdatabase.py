@@ -37,7 +37,7 @@ engine = create_engine('sqlite:///cases.db')
 Base.metadata.bind = engine
 
 # 读取 CSV 文件
-csv_file = r"C:\Users\Morning\Desktop\hiwi\3dplot\3dgraph\static\cases.csv"
+csv_file = r"static\cases.csv"
 columns = get_columns_from_csv(csv_file)
 class_name = os.path.basename(csv_file).split('.')[0].capitalize()
 DynamicModel = create_dynamic_class(class_name, columns)

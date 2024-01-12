@@ -170,40 +170,54 @@
         //     // Add grey background lines for context.
         // }
         function filterNumericKeys(data) {
-            let numericData = {};
-            for (let key in data) {
-                if (data.hasOwnProperty(key)) {
-                    let value = data[key];
-                    // 检查值是否为数字或可以转换为数字的字符串
-                    if (typeof value === 'number' || (!isNaN(value) && !isNaN(parseFloat(value)))) {
-                        let modifiedKey = key.replace(/_/g, ' ');
-                        numericData[modifiedKey] = value;
+            let sum_numericData = [];
+            for (let index in data){
+                let each_dict = data[index];
+
+                let numericData = {};
+
+                for (let key in each_dict) {
+                    if (each_dict.hasOwnProperty(key)) {
+                        let value = each_dict[key];
+                        // 检查值是否为数字或可以转换为数字的字符串
+                        if (typeof value === 'number' || (!isNaN(value) && !isNaN(parseFloat(value)))) {
+                            let modifiedKey = key.replace(/_/g, ' ');
+                            numericData[modifiedKey] = parseInt(value);
+                        }
                     }
                 }
+                console.log(numericData)
+                sum_numericData.push(numericData)
             }
-            return numericData;
+            return sum_numericData;
         }
 
         async function fetchData() {
             try {
-                await fetch('http://127.0.0.1:5001/receive-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({"single":paramMap.param2})
+                await fetch('http://127.0.0.1:5001/get_case_list', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify({"single":paramMap.param2})
                 })
                     .then(response => response.json())
                     .then(data => {
+                        if (Object.keys(data).length === 0) {
+                            // If the data is empty, wait for some time and try again
+                            setTimeout(fetchData, 1000); // Waits for 1 second before trying again
+                        } else {
+                            console.log(data); // Process the non-empty data
+                        }
                         console.log('Received Response:', JSON.stringify(data));
                         // return JSON.stringify(data["receivedData"])
                         let selectedRows_num;
                         let selectedRows_str;
                         selectedRows_str=data["receivedData"]
-                        selectedRows_num=[filterNumericKeys(selectedRows_str[0])]
+                        selectedRows_num=filterNumericKeys(selectedRows_str)
                         console.log(selectedRows_str)
                         console.log(selectedRows_num)
-                        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_str, null, 2)
+                        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_num, null)
                         if (paramMap.param3==="big") {
                             d3.select("svg").style("font", "15px sans-serif");
                         }

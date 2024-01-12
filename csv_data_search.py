@@ -50,20 +50,22 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # 查询主键为12的记录
-def seach_function(i):
-    record_dict={}
-    record = session.query(DynamicModel).filter_by(Index=i).first()
-    if record:
-        # 将查询结果转换为字典
-        record_dict = {key: value for key, value in record.__dict__.items() if not key.startswith('_')}
+def seach_function(index_list):
+    return_list=[]
 
-        print(len(record_dict),f"Found record with Index 12: {record_dict}")
+    for i in index_list:
+        record = session.query(DynamicModel).filter_by(Index=i).first()
+        if record:
+            # 将查询结果转换为字典
+            record_dict = {key: value for key, value in record.__dict__.items() if not key.startswith('_')}
+            return_list.append(record_dict)
+            print(len(record_dict),f"Found record with Index: {record_dict}")
 
-    else:
-        print("No record found with Index 12")
-    return record_dict
+        else:
+            print("No record found with Index")
+    return return_list
 
 
-seach_function("1")
+# seach_function("1")
 # 关闭 session
 # session.close()

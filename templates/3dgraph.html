@@ -28,6 +28,7 @@
         z-index: 999;
         margin-right: 15px;
 
+
     }
     #Caption{
         position: absolute;
@@ -216,10 +217,13 @@
         <button id="plus_button">+</button>
         <button id="minus_button">-</button>
         <label  id="result">1 Case found</label>
+        <button id="all_lines">All data</button>
+
     </div>
-    <form action="/second">
+    <form action="/second",class="checkbox-item">
         <button type="submit">Add data</button>
     </form>
+
 </div>
 <div class="element-group">
     <label for="ai_dropdown" id="ai-caption">Label:</label>
@@ -263,7 +267,7 @@
     //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
     //     .append("g");
     var svg_num=0
-
+    var global_index_list=[]
     let isQueryRunning = false; // 标志来跟踪查询状态
     var listener_list =[]
     let clickCount = 0;  // To keep track of how many times the button has been clicked
@@ -611,7 +615,11 @@
         }
         document.getElementById('result').textContent=`${index_lists.length} Cases found`
         // console.log(condition);
+        call_back_index(index_lists)
         // console.log("index_list",index_list)
+    }
+    function call_back_index(index_list){
+        global_index_list=index_list
     }
     function findCommonElements(arr1, arr2) {
         if (arr1.length===0){
@@ -812,6 +820,37 @@
             // return group;
         })
     }
+    let button = document.getElementById("all_lines");
+
+    // 添加点击事件处理程序
+    button.addEventListener("click", function() {
+        // alert("按钮被点击了！");
+
+    });
+
+    // 添加鼠标悬停事件处理程序''
+
+    button.addEventListener("mouseover", function() {
+        iframe.style.display="block"
+        fetch('http://127.0.0.1:5001/post_multi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "multi": global_index_list }),
+        })
+            .then(response => response.json())
+            .then(data => console.log(data));
+        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("small");
+        src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("big");
+
+
+
+    });
+    button.addEventListener("mouseout", function() {
+        console.log("mouseout");
+        iframe.style.display="none"
+    });
     function three_d(nodes, links){
 
         console.log(links.length+" links loaded in "+(new Date()-start)+" ms.")
@@ -852,7 +891,13 @@
                         //iframe.style.backgroundColor = 'transparent';
                         //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
                         //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-
+                        fetch('http://127.0.0.1:5001/post_multi', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ "multi":[ get_truelabel_index(node.TrueLabel)] }),
+                        })
 
 
                         iframe.style.width = '900px';
@@ -945,11 +990,12 @@
             const resultList = await session_get_index.run(query);
 
             const numbers = resultList.records.map(record => parseFloat(record.get('name'))).filter(num => !isNaN(num));
-            console.log("resultList", numbers,Math.max(...numbers)); // 这里是您的列表
+            console.log("resultList", numbers); // 这里是您的列表
+            call_back_index(numbers)
 
 // 打印新列表以验证结果
 //             console.log(newList);
-            return Math.max(...numbers);
+            return  numbers.length;
         } catch (error) {
             console.error("查询数据库时出错:", error);
         } finally {

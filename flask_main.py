@@ -1,9 +1,16 @@
-from flask import Flask, request, render_template_string,render_template,jsonify
+from flask import Flask, request, render_template_string,render_template,jsonify,session
 import json
 import csv,os
 from CreateDatabase import CreateDatabase
+
 import csv_data_search
+import csv_database_update
+from flask_session import Session
+
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统中
+Session(app)
+
 instance_class=CreateDatabase()
 file_path = 'static/KG_cases_labeled.csv'  # 替换为你的文件路径
 if os.path.exists(file_path):
@@ -24,14 +31,34 @@ def receive_data():
     if data!={}:
         single_index=data['single']
 
-        data=[csv_data_search.seach_function(single_index)]
+        data=csv_data_search.seach_function(single_index)
         print(data)
         if data!={}:
             return jsonify({'receivedData': data})
         else:
             raise Exception ("no data found")
     return jsonify({'receivedData': data})
+@app.route('/post_multi', methods=['POST'])
+def post_multi():
+    # 获取 JSON 数据
+    data = request.json
+    if data!={}:
+        multi_index_list=data['multi']
 
+        data=csv_data_search.seach_function(multi_index_list)
+        session['case_list']=data
+        # print(data)
+        # if data!={}:
+        #     return jsonify({'receivedData': data})
+        # else:
+        #     raise Exception ("no data found")
+    return jsonify({'receivedData': "success"})
+
+@app.route('/get_case_list', methods=['GET'])
+def get_data():
+    # 这里可以添加处理GET请求的逻辑
+    if "case_list" in session:
+        return jsonify({"receivedData":session['case_list']})
 
 
 @app.route('/iframe_page')
@@ -60,6 +87,7 @@ def submit():
 
 
     print("finish")
+    csv_database_update.add_new_data(data)
     instance_class.repeat_one(data)
     return {'status': 'success', 'message': 'Data received'}
 
