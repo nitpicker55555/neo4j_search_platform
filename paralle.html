@@ -157,7 +157,35 @@
 
 
        selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
+       console.log(selectedRows)
        console.log((selectedRows[0]),"selectedRows")
+       selectedRows=[{
+
+           "Title": "Google, Delphi Self-Driving Cars Getting Dinged in California",
+           "Fields": "Autonomous Driving",
+           "Response": "Google: Google said that while safety is paramount some accidents can be expected, given that its cars have gone \"the equivalent of over 15 years of typical human driving,\" or approximately 140,000 miles.\r\nDelphi: Delphi later amended their statement to say \"the vehicles didn't even come that close to each other.\"",
+           "Description": "\r\n    A Google self-driving car allegedly cut off a Delphi self-driving car during a road test, however the Delphi car sensed and avoided collision with the Google car.",
+           "Positive design that produces negative results that do not meet expectations": "1",
+           "Negative design that produces negative results that meet expectations": "0",
+           "Overly human-like and leading to ethics problems": "0",
+           "Not human-like enough to cause ethics problems": "0",
+           "Not enough beyond human to cause ethics problems": "1",
+           "ethics issues caused by the wrong user group": "0",
+           "ethics issues due to wrong user tasks": "0",
+           "Infringements on human rights": "0",
+           "Index": "26",
+           "Social detriment": "0",
+           "Emotional or psychological injury": "0",
+           "Loss of opportunity": "0",
+           "Physical injury": "1",
+           "Economic loss": "0",
+           "Transparency": "0",
+           "Justice and fairness": "0",
+           "Privacy": "0",
+           "Trust": "1",
+           "Non-maleficence": "1",
+           "Responsibility": "1"
+       }]
        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows[0], null, 2)
        // var selectedRows = cities.slice(parseInt(12),parseInt(12)+1)  //选取特定行数据
        // var selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
@@ -244,7 +272,7 @@
 
 
         // 更新textarea的内容
-        var output = d3.select("#data-output");
+        var output = d3.select("#coordinates");
         output.property("value", "Selected count: " + visibleData.length + "\n\n");  // 显示选中的数量
 
         visibleData.forEach(function(d) {

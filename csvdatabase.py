@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 # 清洗列名，确保它们是有效的 Python 变量名
 def clean_column_name(column_name):
-    column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
+    # column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
     column_name = re.sub(r'(^\d|\s+)', '_', column_name)  # 数字开头或空格的地方用下划线替换
     return column_name
 

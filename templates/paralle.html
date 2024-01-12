@@ -53,7 +53,7 @@
 <body>
 
 <div id="graph-container"></div>
-<textarea id="coordinates" rows="10" cols="30"></textarea>
+<textarea id="coordinates" rows="10" cols="50"></textarea>
 
 
 <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -147,8 +147,7 @@
                 .domain(d3.extent(cities, function(p) { return +p[d]; }))  // extend返回最大最小值
                 .range([h, 0]));
         }));
-        let selectedRows_num;
-        let selectedRows_str;
+
         // if (paramMap.param1!=="Sum"){
         //
         //     str_num = paramMap.param2.replace("[", "").replace("]", "");  // 去掉括号
@@ -177,7 +176,8 @@
                     let value = data[key];
                     // 检查值是否为数字或可以转换为数字的字符串
                     if (typeof value === 'number' || (!isNaN(value) && !isNaN(parseFloat(value)))) {
-                        numericData[key] = value;
+                        let modifiedKey = key.replace(/_/g, ' ');
+                        numericData[modifiedKey] = value;
                     }
                 }
             }
@@ -186,7 +186,7 @@
 
         async function fetchData() {
             try {
-                await fetch('http://localhost:5000/receive-data', {
+                await fetch('http://127.0.0.1:5001/receive-data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -196,7 +196,60 @@
                     .then(response => response.json())
                     .then(data => {
                         console.log('Received Response:', JSON.stringify(data));
-                        return JSON.stringify(data["receivedData"])
+                        // return JSON.stringify(data["receivedData"])
+                        let selectedRows_num;
+                        let selectedRows_str;
+                        selectedRows_str=data["receivedData"]
+                        selectedRows_num=[filterNumericKeys(selectedRows_str[0])]
+                        console.log(selectedRows_str)
+                        console.log(selectedRows_num)
+                        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_str, null, 2)
+                        if (paramMap.param3==="big") {
+                            d3.select("svg").style("font", "15px sans-serif");
+                        }
+                        background = svg.append("g")
+                            .attr("class", "background")
+                            .selectAll("path")
+                            .data(selectedRows_num)
+                            .enter().append("path")
+                            .attr("d", path);
+
+                        // Add blue foreground lines for focus.
+
+                        foreground = svg.append("g")
+                            .attr("class", "foreground")
+                            .selectAll("path")
+                            .data(selectedRows_num)
+                            .enter().append("path")
+                            .attr("d", path)
+                            .style("stroke", function(d) {
+                                return colorScale(d.Index);  // your_attribute是你想根据其设置颜色的属性
+                            });
+
+                        // Add a group element for each dimension.
+                        var g = svg.selectAll(".dimension")
+                            .data(dimensions)
+                            .enter().append("g")
+                            .attr("class", "dimension")
+                            .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+
+                        // Add an axis and title.
+                        g.append("g")
+                            .attr("class", "axis")
+                            .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+                            .append("text")
+                            .attr("text-anchor", "middle")
+                            .attr("y", -60)
+                            .text(String)
+                            .call(wrap, 200); // maxWidth 是你设置的最大宽度;
+
+                        // Add and store a brush for each axis.
+                        g.append("g")
+                            .attr("class", "brush")
+                            .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush)); })
+                            .selectAll("rect")
+                            .attr("x", -8)
+                            .attr("width", 16);
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -205,55 +258,7 @@
                 console.error('Error:', error);
             }
         }
-        selectedRows_str=fetchData()
-        selectedRows_num=filterNumericKeys(selectedRows_str)
-        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_str, null, 2)
-        if (paramMap.param3==="big") {
-            d3.select("svg").style("font", "15px sans-serif");
-        }
-        background = svg.append("g")
-            .attr("class", "background")
-            .selectAll("path")
-            .data(selectedRows_num)
-            .enter().append("path")
-            .attr("d", path);
-
-        // Add blue foreground lines for focus.
-
-        foreground = svg.append("g")
-            .attr("class", "foreground")
-            .selectAll("path")
-            .data(selectedRows_num)
-            .enter().append("path")
-            .attr("d", path)
-            .style("stroke", function(d) {
-                return colorScale(d.Index);  // your_attribute是你想根据其设置颜色的属性
-            });
-
-        // Add a group element for each dimension.
-        var g = svg.selectAll(".dimension")
-            .data(dimensions)
-            .enter().append("g")
-            .attr("class", "dimension")
-            .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
-
-        // Add an axis and title.
-        g.append("g")
-            .attr("class", "axis")
-            .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
-            .append("text")
-            .attr("text-anchor", "middle")
-            .attr("y", -60)
-            .text(String)
-            .call(wrap, 200); // maxWidth 是你设置的最大宽度;
-
-        // Add and store a brush for each axis.
-        g.append("g")
-            .attr("class", "brush")
-            .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush)); })
-            .selectAll("rect")
-            .attr("x", -8)
-            .attr("width", 16);
+        fetchData();
     });
 
     // Returns the path for a given data point.
@@ -285,7 +290,7 @@
 
 
         // 更新textarea的内容
-        var output = d3.select("#data-output");
+        var output = d3.select("#coordinates");
         output.property("value", "Selected count: " + visibleData.length + "\n\n");  // 显示选中的数量
 
         visibleData.forEach(function(d) {

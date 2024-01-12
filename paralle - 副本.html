@@ -2,32 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Parallel Coordinates Chart with Axis Filtering</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* 可选的样式 */
+        .axis text {
+            font-size: 12px;
+        }
+        .path {
+            fill: none;
+            stroke-width: 2;
+        }
+        .highlighted {
+            stroke-width: 4;
+        }
+    </style>
 </head>
 <body>
-<style>
-    h1 {
-        color: white;  /* 设置文字颜色 */
-        font-size: 5em;  /* 设置文字大小 */
-        margin-bottom: 20px;  /* 添加底部外边距 */
-
-        /*text-align: center;  !* 文字居中 *!*/
-        /* 可以加入更多样式如字体、文字阴影等 */
-    }
-</style>
-<div class="background">
-    <div class="center-box glass-effect">
-        <h1 style="color: white;" >Login</h1>
-        <form>
-            <input type="text" placeholder="用户名">
-            <input type="password" placeholder="密码">
-            <div class="button-container">
-                <button class="login-button">Login</button>
-                <button class="register-button">注册</button>
-            </div>
-        </form>
-    </div>
+<div>
+    <!-- 添加筛选坐标轴的下拉菜单 -->
+    <label for="axisSelect">选择坐标轴：</label>
+    <select id="axisSelect" multiple>
+        <!-- 将每个坐标轴作为选项 -->
+        <option value="axis1">Axis 1</option>
+        <option value="axis2">Axis 2</option>
+        <option value="axis3">Axis 3</option>
+        <option value="axis4">Axis 4</option>
+    </select>
 </div>
+<script>
+    // 假设你有一个包含字典的列表 data，每个字典的键名将用作坐标轴的标题
+    var data = [
+        { "axis1": 10, "axis2": 20, "axis3": 30, "axis4": 40 },
+        { "axis1": 15, "axis2": 25, "axis3": 35, "axis4": 45 },
+        // 添加更多数据点...
+    ];
+
+    // 定义绘图区域的宽度和高度
+    var width = 800;
+    var height = 400;
+
+    // 创建SVG元素并设置宽度和高度
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // 获取数据的所有键名（坐标轴的标题）
+    var keys = Object.keys(data[0]);
+
+    // 创建x比例尺
+    var x = d3.scalePoint()
+        .domain(keys)
+        .range([50, width - 50]);
+
+    // 创建y比例尺
+    var y = {};
+
+    keys.forEach(function(key) {
+        y[key] = d3.scaleLinear()
+            .domain([0, d3.max(data, function(d) { return d[key]; })])
+            .range([height - 50, 50]);
+    });
+
+    // 创建一个函数来绘制路径
+    var line = d3.line()
+        .x(function(d, i) { return x(keys[i]); })
+        .y(function(d, i) { return y[keys[i]](d); });
+
+    // 绘制平行坐标图的轴线
+    svg.selectAll(".axis")
+        .data(keys)
+        .enter().append("g")
+        .attr("class", "axis")
+        .attr("transform", function(d) { return "translate(" + x(d) + ",0)"; })
+        .each(function(d) {
+            d3.select(this).call(d3.axisLeft(y[d]));
+            // 添加轴标题
+            d3.select(this).append("text")
+                .attr("class", "title")
+                .attr("y", -10)
+                .text(d);
+        });
+
+    // 绘制数据路径
+    var paths = svg.selectAll(".path")
+        .data(data)
+        .enter().append("path")
+        .attr("class", "path")
+        .attr("d", function(d) { return line(Object.values(d)); })
+        .style("fill", "none")
+        .style("stroke", function(d, i) { return d3.schemeCategory10[i]; }); // 可以根据需要修改线的颜色
+
+    // 添加交互效果，例如鼠标悬停时的高亮
+    paths.on("mouseover", function() {
+        d3.select(this).classed("highlighted", true);
+    })
+        .on("mouseout", function() {
+            d3.select(this).classed("highlighted", false);
+        });
+
+    // 添加下拉菜单的事件监听器以根据选择筛选坐标轴
+    d3.select("#axisSelect").on("change", function() {
+        var selectedAxes = Array.from(this.selectedOptions, option => option.value);
+        paths.style("display", function(d) {
+            return selectedAxes.every(axis => !isNaN(d[axis])) ? "initial" : "none";
+        });
+    });
+</script>
 </body>
 </html>

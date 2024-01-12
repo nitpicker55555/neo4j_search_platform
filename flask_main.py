@@ -21,14 +21,18 @@ def second():
 def receive_data():
     # 获取 JSON 数据
     data = request.json
-    single_index=data['single']
-    data=[csv_data_search.seach_function(single_index)]
-    # 这里可以处理数据，例如保存到数据库等
-    # ...
+    if data!={}:
+        single_index=data['single']
 
-    # 返回接收到的数据作为确认
-
+        data=[csv_data_search.seach_function(single_index)]
+        print(data)
+        if data!={}:
+            return jsonify({'receivedData': data})
+        else:
+            raise Exception ("no data found")
     return jsonify({'receivedData': data})
+
+
 
 @app.route('/iframe_page')
 def iframe_page():

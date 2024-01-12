@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 # 清洗列名，确保它们是有效的 Python 变量名
 def clean_column_name(column_name):
-    column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
+    # column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
     column_name = re.sub(r'(^\d|\s+)', '_', column_name)  # 数字开头或空格的地方用下划线替换
     return column_name
 
@@ -51,17 +51,17 @@ session = Session()
 
 # 查询主键为12的记录
 def seach_function(i):
-
+    record_dict={}
     record = session.query(DynamicModel).filter_by(Index=i).first()
     if record:
         # 将查询结果转换为字典
         record_dict = {key: value for key, value in record.__dict__.items() if not key.startswith('_')}
 
         print(len(record_dict),f"Found record with Index 12: {record_dict}")
-        return record_dict
+
     else:
         print("No record found with Index 12")
-
+    return record_dict
 
 
 seach_function("1")
