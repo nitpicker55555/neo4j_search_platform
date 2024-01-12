@@ -147,34 +147,74 @@
                 .domain(d3.extent(cities, function(p) { return +p[d]; }))  // extend返回最大最小值
                 .range([h, 0]));
         }));
-        if (paramMap.param1!=="Sum"){
-
-            str_num = paramMap.param2.replace("[", "").replace("]", "");  // 去掉括号
-            // var arr = str_num.split(",");  // 使用逗号切分字符串
-            //var selectedRows =[cities.slice(parseInt(arr[0]),parseInt(arr[0])+1)[0],cities.slice(parseInt(arr[1]),parseInt(arr[1])+1)[0]]
-            var selectedRows = cities.filter(function(row) {
-                return cities;  // 假设'cluster'列是字符串类型
-            });
-
-
-            selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
-            console.log((selectedRows[0]),"selectedRows")
-            document.getElementById("coordinates").innerText=JSON.stringify(selectedRows[0], null, 2)
-            // var selectedRows = cities.slice(parseInt(12),parseInt(12)+1)  //选取特定行数据
-            // var selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
-            // Add grey background lines for context.
-        }else {
-
-
-            // Add grey background lines for context.
+        let selectedRows_num;
+        let selectedRows_str;
+        // if (paramMap.param1!=="Sum"){
+        //
+        //     str_num = paramMap.param2.replace("[", "").replace("]", "");  // 去掉括号
+        //     // var arr = str_num.split(",");  // 使用逗号切分字符串
+        //     //var selectedRows =[cities.slice(parseInt(arr[0]),parseInt(arr[0])+1)[0],cities.slice(parseInt(arr[1]),parseInt(arr[1])+1)[0]]
+        //     var selectedRows = cities.filter(function(row) {
+        //         return cities;  // 假设'cluster'列是字符串类型
+        //     });
+        //
+        //
+        //     selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
+        //     console.log((selectedRows[0]),"selectedRows")
+        //     document.getElementById("coordinates").innerText=JSON.stringify(selectedRows[0], null, 2)
+        //     // var selectedRows = cities.slice(parseInt(12),parseInt(12)+1)  //选取特定行数据
+        //     // var selectedRows = cities.slice(parseInt(paramMap.param2),parseInt(paramMap.param2)+1)  //选取特定行数据    正常
+        //     // Add grey background lines for context.
+        // }else {
+        //
+        //
+        //     // Add grey background lines for context.
+        // }
+        function filterNumericKeys(data) {
+            let numericData = {};
+            for (let key in data) {
+                if (data.hasOwnProperty(key)) {
+                    let value = data[key];
+                    // 检查值是否为数字或可以转换为数字的字符串
+                    if (typeof value === 'number' || (!isNaN(value) && !isNaN(parseFloat(value)))) {
+                        numericData[key] = value;
+                    }
+                }
+            }
+            return numericData;
         }
-        if (paramMap.param3=="big") {
+
+        async function fetchData() {
+            try {
+                await fetch('http://localhost:5000/receive-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({"single":paramMap.param2})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Received Response:', JSON.stringify(data));
+                        return JSON.stringify(data["receivedData"])
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        selectedRows_str=fetchData()
+        selectedRows_num=filterNumericKeys(selectedRows_str)
+        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_str, null, 2)
+        if (paramMap.param3==="big") {
             d3.select("svg").style("font", "15px sans-serif");
         }
         background = svg.append("g")
             .attr("class", "background")
             .selectAll("path")
-            .data(selectedRows)
+            .data(selectedRows_num)
             .enter().append("path")
             .attr("d", path);
 
@@ -183,7 +223,7 @@
         foreground = svg.append("g")
             .attr("class", "foreground")
             .selectAll("path")
-            .data(selectedRows)
+            .data(selectedRows_num)
             .enter().append("path")
             .attr("d", path)
             .style("stroke", function(d) {
