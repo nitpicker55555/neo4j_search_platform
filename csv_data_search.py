@@ -27,6 +27,7 @@ def get_columns_from_csv(csv_file):
     with open(csv_file, 'r', encoding='utf-8-sig') as file:
         reader = csv.reader(file)
         original_columns = next(reader)
+        print(original_columns)
         columns = [clean_column_name(col) for col in original_columns if col]
     return columns
 
@@ -41,6 +42,8 @@ Base.metadata.bind = engine
 csv_file = r"static\cases.csv"
 columns = get_columns_from_csv(csv_file)
 class_name = os.path.basename(csv_file).split('.')[0].capitalize()
+# print(class_name)
+# print(columns)
 DynamicModel = create_dynamic_class(class_name, columns)
 
 # 创建表（如果它尚不存在）
@@ -60,10 +63,10 @@ def seach_function(index_list):
             # 将查询结果转换为字典
             record_dict = {key: value for key, value in record.__dict__.items() if not key.startswith('_')}
             return_list.append(record_dict)
-            print(f"Found record: {record_dict}")
+            # print(f"Found record: {record_dict}")
 
         else:
-            print("No record found with Index")
+            print("No record found with Index",i)
     return return_list
 # return_list=seach_function([1])
 def search_similar(target_index):

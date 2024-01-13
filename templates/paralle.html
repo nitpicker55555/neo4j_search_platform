@@ -108,7 +108,7 @@
     if (paramMap.param3=="big"){
         document.getElementById("coordinates").style.display="block"
         var m = [100, 0, 20, 50], //向上，向右，向下，向左
-            w = 4000 - m[1] - m[3],
+            w = 6000 - m[1] - m[3],
             h = 400 - m[0] - m[2];
 
     }else{
@@ -130,16 +130,32 @@
         .append("g")
         .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
     // var case_index = paramMap.param2.match(/\d+/)[0];
-
+    var global_index=[]
     // 替换"ai1_zh.csv"中的数字
     // var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
-    var filename = "{{ url_for('static', filename='KG_cases_labeled.csv') }}"
+    var filename = "{{ url_for('static', filename='cases.csv') }}"
     console.log("case_index",paramMap.param2)
     // console.log(filename,"filename")
     d3.csv(filename, function(error, cities) {
         if (error) throw error;
 
-        const str_list=["Title","Fields","Response","Description"]
+        const str_list=[
+            "Case theme",
+            "Fields",
+            "Users",
+            "Provider",
+            "Influencer",
+            "Results",
+            "Reason",
+            "Positionalattribute",
+            "Opinion",
+            "Attitude",
+            "Response",
+            "Description",
+            "Place",
+            "Time",
+            "URL",
+            "degree of influence"]
 
         // Extract the list of dimensions and create a scale for each.
         x.domain(dimensions = d3.keys(cities[0]).filter(function(d) {   //filter掉特定的列
@@ -186,91 +202,129 @@
                         }
                     }
                 }
-                console.log(numericData)
+                // console.log(numericData)
                 sum_numericData.push(numericData)
             }
             return sum_numericData;
         }
 
         async function fetchData() {
-            try {
-                await fetch('http://127.0.0.1:5001/get_case_list', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify({"single":paramMap.param2})
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Object.keys(data).length === 0) {
-                            // If the data is empty, wait for some time and try again
-                            setTimeout(fetchData, 1000); // Waits for 1 second before trying again
-                        } else {
-                            console.log(data); // Process the non-empty data
-                        }
-                        console.log('Received Response:', JSON.stringify(data));
-                        // return JSON.stringify(data["receivedData"])
-                        let selectedRows_num;
-                        let selectedRows_str;
-                        selectedRows_str=data["receivedData"]
-                        selectedRows_num=filterNumericKeys(selectedRows_str)
-                        console.log(selectedRows_str)
-                        console.log(selectedRows_num)
-                        document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_num, null)
-                        if (paramMap.param3==="big") {
-                            d3.select("svg").style("font", "15px sans-serif");
-                        }
-                        background = svg.append("g")
-                            .attr("class", "background")
-                            .selectAll("path")
-                            .data(selectedRows_num)
-                            .enter().append("path")
-                            .attr("d", path);
+            if (paramMap.param1==="single"){
+                try {
 
-                        // Add blue foreground lines for focus.
-
-                        foreground = svg.append("g")
-                            .attr("class", "foreground")
-                            .selectAll("path")
-                            .data(selectedRows_num)
-                            .enter().append("path")
-                            .attr("d", path)
-                            .style("stroke", function(d) {
-                                return colorScale(d.Index);  // your_attribute是你想根据其设置颜色的属性
-                            });
-
-                        // Add a group element for each dimension.
-                        var g = svg.selectAll(".dimension")
-                            .data(dimensions)
-                            .enter().append("g")
-                            .attr("class", "dimension")
-                            .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
-
-                        // Add an axis and title.
-                        g.append("g")
-                            .attr("class", "axis")
-                            .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
-                            .append("text")
-                            .attr("text-anchor", "middle")
-                            .attr("y", -60)
-                            .text(String)
-                            .call(wrap, 200); // maxWidth 是你设置的最大宽度;
-
-                        // Add and store a brush for each axis.
-                        g.append("g")
-                            .attr("class", "brush")
-                            .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush)); })
-                            .selectAll("rect")
-                            .attr("x", -8)
-                            .attr("width", 16);
+                    await fetch('http://127.0.0.1:5001/post_single', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({"single":[paramMap.param2]})
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            } catch (error) {
-                console.error('Error:', error);
+                        .then(response => response.json())
+                        .then(data => {
+                            draw_lines(data)
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }else {
+                try {
+
+                    await fetch('http://127.0.0.1:5001/get_case_list', {
+                        //     method: 'POST',
+                        //     headers: {
+                        //         'Content-Type': 'application/json',
+                        //     },
+                        //     body: JSON.stringify({"single":paramMap.param2})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            draw_lines(data)
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             }
+
+        }
+        function extractIndexes(listOfDicts) {
+            var indexList = [];
+            for (var i = 0; i < listOfDicts.length; i++) {
+                var dict = listOfDicts[i];
+                if (dict.hasOwnProperty("Index")) {
+                    indexList.push(dict["Index"]);
+                }
+            }
+            return indexList;
+        }
+        function draw_lines(data){
+            if (Object.keys(data).length === 0) {
+                // If the data is empty, wait for some time and try again
+                setTimeout(fetchData, 1000); // Waits for 1 second before trying again
+            } else {
+                console.log(data); // Process the non-empty data
+            }
+            // console.log('Received Response:', JSON.stringify(data));
+            // return JSON.stringify(data["receivedData"])
+            let selectedRows_num;
+            let selectedRows_str;
+            selectedRows_str=data["receivedData"]
+            selectedRows_num=filterNumericKeys(selectedRows_str)
+            global_index=extractIndexes(selectedRows_num)
+            // console.log(selectedRows_str)
+            // console.log(selectedRows_num)
+            document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_num, null)
+            if (paramMap.param3==="big") {
+                d3.select("svg").style("font", "15px sans-serif");
+            }
+            background = svg.append("g")
+                .attr("class", "background")
+                .selectAll("path")
+                .data(selectedRows_num)
+                .enter().append("path")
+                .attr("d", path);
+
+            // Add blue foreground lines for focus.
+
+            foreground = svg.append("g")
+                .attr("class", "foreground")
+                .selectAll("path")
+                .data(selectedRows_num)
+                .enter().append("path")
+                .attr("d", path)
+                .style("stroke", function(d) {
+                    return colorScale(d.Index);  // your_attribute是你想根据其设置颜色的属性
+                });
+
+            // Add a group element for each dimension.
+            var g = svg.selectAll(".dimension")
+                .data(dimensions)
+                .enter().append("g")
+                .attr("class", "dimension")
+                .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+
+            // Add an axis and title.
+            g.append("g")
+                .attr("class", "axis")
+                .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+                .append("text")
+                .attr("text-anchor", "middle")
+                .attr("y", -60)
+                .text(String)
+                .call(wrap, 200); // maxWidth 是你设置的最大宽度;
+
+            // Add and store a brush for each axis.
+            g.append("g")
+                .attr("class", "brush")
+                .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush)); })
+                .selectAll("rect")
+                .attr("x", -8)
+                .attr("width", 16);
         }
         fetchData();
     });
@@ -287,12 +341,14 @@
             extents = actives.map(function(p) { return y[p].brush.extent(); });
 
         var visibleData = [];
+        var visible_index=[]
         foreground.style("display", function(d) {
             var isVisible = actives.every(function(p, i) {
                 return extents[i][0] <= d[p] && d[p] <= extents[i][1];
             });
 
             if (isVisible) visibleData.push(d);
+
 
             // 更新线条颜色
             d3.select(this).style("stroke", function() {

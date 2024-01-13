@@ -127,11 +127,7 @@
           .attr("height", h + m[0] + m[2])
           .append("g")
           .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
-    // var case_index = paramMap.param2.match(/\d+/)[0];
 
-    // 替换"ai1_zh.csv"中的数字
-    // var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
-    // var filename = "{{ url_for('static', filename='KG_cases_labeled.csv') }}"
     var filename = "KG_cases_labeled.csv"
     console.log("case_index",paramMap.param2)
     // console.log(filename,"filename")

@@ -7,7 +7,7 @@ import os
 import sqlalchemy
 # 清洗列名，确保它们是有效的 Python 变量名
 def clean_column_name(column_name):
-    column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
+    # column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
     column_name = re.sub(r'(^\d|\s+)', '_', column_name)  # 数字开头或空格的地方用下划线替换
     return column_name
 
@@ -53,11 +53,34 @@ session = Session()
 def add_new_data(new_record_data):
 
     # new_record_data = {'Index': 13, 'Name': 'John Doe', 'Age': 30}  # 示例数据，根据实际情况调整
-    new_record = DynamicModel(**new_record_data)
+    replaced_dict={}
+    for key in new_record_data:
+        replaced_dict[clean_column_name(key)]=new_record_data[key]
+    new_record = DynamicModel(**replaced_dict)
     session.add(new_record)
     session.commit()
 
     print("New record added to the database.")
 
-    # 关闭 session
+def del_data(index_list):
+    del_list=0
+    for primary_key_value in index_list:
+        try:
+            # 查询数据库中与提供的主键值匹配的记录
+            # record = session.query(DynamicModel).filter_by(Index=i).first()
+            record_to_delete = session.query(DynamicModel).filter_by(Index= primary_key_value).first()
+            if record_to_delete:
+
+                # 如果找到了记录，删除它
+                session.delete(record_to_delete)
+                session.commit()
+                del_list+=1
+                print(f"Record with Index {primary_key_value} deleted from the database.")
+            else:
+                # 如果没找到记录，打印一条消息
+                print(f"No record found with Index {primary_key_value}.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+    return del_list
+        # 关闭 session
     # session.close()

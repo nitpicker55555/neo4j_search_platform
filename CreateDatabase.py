@@ -343,6 +343,7 @@ class CreateDatabase:
                 graph.push(node)
             except:
                 pass
+
         #
         # if len(index_num)!=0:
         #     self.read_col(labels_number)

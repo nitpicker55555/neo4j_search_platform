@@ -19,8 +19,8 @@ def index():
 def second():
     return render_template('upload.html')
 
-@app.route('/receive-data', methods=['POST'])
-def receive_data():
+@app.route('/post_single', methods=['POST'])
+def post_single():
     # 获取 JSON 数据
     data = request.json
     if data!={}:
@@ -64,6 +64,22 @@ def post_similarity():
         # else:
         #     raise Exception ("no data found")
     return jsonify({'receivedData': data})
+@app.route('/post_del', methods=['POST'])
+def post_del():
+    # 获取 JSON 数据
+    data = request.json
+    if data!={}:
+        multi_index_list=data['del']
+
+        data=csv_database_update.del_data(multi_index_list)
+        print("del number: ",data)
+
+        # print(data)
+        # if data!={}:
+        #     return jsonify({'receivedData': data})
+        # else:
+        #     raise Exception ("no data found")
+    return jsonify({'receivedData': "successful"})
 
 @app.route('/get_case_list', methods=['GET'])
 def get_data():
@@ -85,6 +101,7 @@ def iframe_page():
         # 处理这些参数...
         return render_template('paralle.html', param1=param1, param2=param2,param3=param3)
 @app.route('/submit', methods=['POST'])
+
 def submit():
     data = request.json  # Get JSON data sent from the front-end
 
@@ -101,8 +118,10 @@ def submit():
 
 
     print("finish")
+
     csv_database_update.add_new_data(data)
     instance_class.repeat_one(data)
+    print("updated")
     return {'status': 'success', 'message': 'Data received'}
 
 if __name__ == '__main__':

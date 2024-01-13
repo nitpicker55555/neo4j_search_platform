@@ -32,7 +32,7 @@
 <h1>Update cases</h1>
 <div id="form" class="form-frame"></div>
 <button id="confirmBtn">Confirm</button>
-<!--<button id="fillBtn">Fill Text Inputs</button>-->
+<button id="fillBtn">Fill Text Inputs</button>
 <script>
   const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "12345678"),{encrypted: false});
   var maxNumber=0
@@ -40,7 +40,7 @@
   d3.csv("/static/cases.csv").then(function(data) {
     if(data.length > 0){
       var headers = Object.keys(data[0]);
-      var specialHeaders = ['degree of influence', 'Data_acquisition', 'Data_access', 'Data_modeling', 'Behavior_tracking', 'Behavior_prediction', 'Behaviour_nudging', 'Wrong_user_group', 'Wrong_user_task', 'Surprising_learning_result', 'Positive design that produces negative results that do not meet expectations', 'Negative design that produces negative results that meet expectations', 'Overly human-like and leading to ethics problems', 'Not human-like enough to cause ethics problems', 'Not enough beyond human to cause ethics problems', 'ethics issues caused by the wrong user group', 'ethics issues due to wrong user tasks', 'Infringements on human rights', 'Social detriment', 'Emotional or psychological injury', 'Loss of opportunity', 'Physical injury', 'Economic loss', 'Transparency', 'Justice and fairness', 'Privacy', 'Trust', 'Non-maleficence', 'Responsibility']; // Headers for dropdown
+      var specialHeaders = ['Data acquisition', 'Data access', 'Data modeling', 'Behavior tracking', 'Behavior prediction', 'Behaviour nudging', 'Wrong user group', 'Wrong user task', 'Surprising learning result', 'Positive design that produces negative results that do not meet expectations', 'Negative design that produces negative results that meet expectations', 'Overly human-like and leading to ethics problems', 'Not human-like enough to cause ethics problems', 'Not enough beyond human to cause ethics problems', 'ethics issues caused by the wrong user group', 'ethics issues due to wrong user tasks', 'Infringements on human rights', 'Social detriment', 'Emotional or psychological injury', 'Loss of opportunity', 'Physical injury', 'Economic loss', 'Transparency', 'Justice and fairness', 'Privacy', 'Trust', 'Non-maleficence', 'Responsibility']; // Headers for dropdown
       var formContainer = document.getElementById('form');
       var formRow = document.createElement('div');
       formRow.className = 'form-row';

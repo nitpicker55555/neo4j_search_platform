@@ -32,7 +32,7 @@
 
     }
     #Caption{
-        position: relative;
+        position: absolute;
         font-style: italic;
         font-weight: bold;
         z-index: 999;
@@ -216,7 +216,9 @@
         <label  id="result">1 Case found</label>
         <button id="btn_similarity">Similarity</button>
         <button id="all_lines">Parallel Coordinate Plot</button>
-        <button action="/second" type="submit">Add data</button>
+        <button onclick="location.href='/second'">Add data</button>
+
+        <button id="del_btn">Del data</button>
 
     </div>
 <!--    <form action="/second",class="checkbox-item">-->
@@ -299,7 +301,7 @@
 
 // 获取 document.body 的子元素总数，仅包括元素节点
         var totalChildElements = document.body.children.length;
-        clickCount=totalChildElements-9
+        clickCount=totalChildElements-8
         // console.log("Total child nodes: " + totalChildNodes);
         console.log("Total child elements: " + totalChildElements);
         console.log('clickCount'+clickCount)
@@ -346,7 +348,7 @@
         var lastChild = document.body.lastChild;
 
 // 从 document.body 中移除这个子节点
-        if (totalChildElements>10){
+        if (totalChildElements>9){
             document.body.removeChild(lastChild);
         }
 
@@ -357,20 +359,23 @@
     const elem = document.getElementById('3d-graph');
     elem.style.zIndex=1;
     const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "12345678"),{encrypted: false});
-
+    const all_col_name=['Index', 'Case theme', 'Fields', 'Users', 'Provider', 'Influencer', 'Results', 'Reason', 'Positionalattribute', 'Opinion', 'Attitude', 'Response', 'Description', 'Place', 'Time', 'URL', 'degree of influence', 'Data acquisition', 'Data access', 'Data modeling', 'Behavior tracking', 'Behavior prediction', 'Behaviour nudging', 'Wrong user group', 'Wrong user task', 'Surprising learning result', 'Positive design that produces negative results that do not meet expectations', 'Negative design that produces negative results that meet expectations', 'Overly human-like and leading to ethics problems', 'Not human-like enough to cause ethics problems', 'Not enough beyond human to cause ethics problems', 'ethics issues caused by the wrong user group', 'ethics issues due to wrong user tasks', 'Infringements on human rights', 'Social detriment', 'Emotional or psychological injury', 'Loss of opportunity', 'Physical injury', 'Economic loss', 'Transparency', 'Justice and fairness', 'Privacy', 'Trust', 'Non-maleficence', 'Responsibility']
     const session2 = driver.session({database:"neo4j"});
     var session_attribute = driver.session({database:"neo4j"});
-    var session_get_index = driver.session({database:"neo4j"});
+
     session2.run("CALL db.labels()")
         .then(function(result) {
             var dropdown = document.getElementById('ai_dropdown'); // if this returns null, the next line will throw an error
             // dropdown.add(option);
             // console.log(result)
             result.records.forEach(function(record) {
-                var option = document.createElement('option');
-                option.value = record.get(0);
-                option.text = record.get(0);
-                dropdown.add(option);
+                if (all_col_name.includes( record.get(0))){
+                    var option = document.createElement('option');
+                    option.value = record.get(0);
+                    option.text = record.get(0);
+                    dropdown.add(option);
+                }
+
             });
 
             // Close the session and driver
@@ -380,12 +385,7 @@
         }).catch(error => {
         console.error(error);
     });
-    query_max_index().then(result => {
-        maxNumber= result//
-        document.getElementById('result').textContent=(maxNumber.toString()+" Cases found")
-    }).catch(error => {
-        console.error('Promise rejected:', error);
-    });
+    query_max_index()//initialize all cases
     const start = new Date()
     var iframe = document.getElementById("paralle");
     iframe.scrolling="no";
@@ -394,7 +394,8 @@
     iframe.style.height = '120px';
     var src_="";
     iframe.onclick = function() {
-        window.location.href = src_;
+        window.open(src_, '_blank');
+        // window.location.href = src_;
         console.log(src_); // "value2"
     }
 
@@ -404,7 +405,7 @@
     document.addEventListener('click', function(event) {
         console.log('Element clicked:', event.target);
         if (iframe.style.display==="block"){
-            window.location.href = src_;
+            window.open(src_, '_blank');
         }
 
     });
@@ -441,16 +442,21 @@
                     // 这里是您想要执行的代码
                     var selectedOption = select_dom.options[select_dom.selectedIndex].text;
                     // var selectElement = document.getElementById("attribute_dropdown");
-
-// 更改第一个选项的文本
-//         selectElement.options[0].text = "Search in "+selectedOption;
-                    // document.getElementById("attribute_dropdown").selectedIndex = 0;
-                    // document.getElementById('attribute_dropdown').value = "Search in "+selectedOption;
-
                     const attribute_query = `
                  MATCH (n:\`${selectedOption}\`)
                         RETURN DISTINCT n.name;
                         `;
+// 更改第一个选项的文本
+//         selectElement.options[0].text = "Search in "+selectedOption;
+                    // document.getElementById("attribute_dropdown").selectedIndex = 0;
+                    // document.getElementById('attribute_dropdown').value = "Search in "+selectedOption;
+                    // if (selectedOption.toString().includes("_")){
+                    //
+                    // }else {
+                    //
+                    // }
+
+                    console.log("attribute_query",attribute_query)
                     session_attribute.run(attribute_query)
                         .then(function(result) {
                             var dropdown = document.getElementById(nextId); // if this returns null, the next line will throw an error
@@ -490,7 +496,8 @@
 //
 // 将这个新选项设为默认选中
                     // document.getElementById(nextId).value = "Search in "+selectedOption;
-                    update_search();
+
+                    setTimeout(delayAsyncFunction, 1000);
                 });
                 select_dom.style.width = '200px';
                 select_dom.style.marginRight = '20px';
@@ -502,7 +509,9 @@
         });
     }
 
-
+    function delayAsyncFunction() {
+        update_search();
+    }
 
     async function queryDatabase(condition) {
         var session_get_index = driver.session({database:"neo4j"});
@@ -511,16 +520,14 @@
             // 使用 await 等待查询结果
             const resultList = await session_get_index.run(condition);
             console.log("resultList", resultList); // 这里是您的列表
-            var newList = resultList.records.map(function(record) {
-                // 分割字符串
-                var parts = record.get(0).split("_");
-                // 返回分割后的第二部分（如果存在）
-                return parts.length > 1 ? parts[1] : null;
-            });
-
 // 打印新列表以验证结果
 //             console.log(newList);
-            return newList
+            return resultList.records.map(function (record) {
+                // 分割字符串
+                var parts = record.get(0).split("_");
+                // 返回分割后的最后一部分
+                return parts.length > 0 ? parts[parts.length - 1] : null;
+            })
         } catch (error) {
             console.error("查询数据库时出错:", error);
         } finally {
@@ -575,6 +582,59 @@
         // });
         // isHidden = !isHidden;
     });
+    const del_btn = document.getElementById("del_btn");
+
+
+    // let isHidden = false;
+
+    del_btn.addEventListener("click", () => {
+        var result = confirm("Do you want to delete data with index:\n\n\n"+global_index_list.toString()+" ?\n\n"+"Data length: "+global_index_list.length.toString());
+
+        if (result === true) {
+            // 用户点击了确认按钮
+            var session_del = driver.session({database:"neo4j"});
+
+
+            global_index_list.map(number => {
+                session_del.run(`MATCH (n)\nWHERE n.TrueLabel CONTAINS '${number}'\nDETACH DELETE n;`)
+            .then(function (result) {
+                    console.log(result)
+                });
+
+            })
+
+            fetch('http://127.0.0.1:5001/post_del', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ "del": global_index_list }),
+            })
+                .then(response => response.json())
+                .then(data =>{
+
+
+                    if (data['receivedData']==="successful"){
+                        alert("Delete successfully")
+                    }else {
+                        alert("Delete not successfully")
+                    }
+
+
+                })
+
+                .catch(error => {
+                    console.error('Error:', error);
+                })
+            // alert("操作已执行！");
+        } else {
+            // 用户点击了取消按钮或者关闭了确认框
+
+        }
+  });
+    function filterNumericStrings(array) {
+        return array.filter(item => typeof item === 'string' && /^\d+$/.test(item));
+    }
     async function update_search(){
         const selects = document.querySelectorAll('select');
 
@@ -599,11 +659,13 @@
 
 
             if (id.startsWith('ai_dropdown')){
-                if (!dropdown_str.includes(' ')) {
-                    condition+=`MATCH (n:${dropdown_str})`;
-                }
-                else {
+                if (dropdown_str.includes(' ') ||  dropdown_str.includes('-') ) {
                     condition+=`MATCH (n:\`${dropdown_str}\`)`;
+                }
+
+                else {
+                    condition+=`MATCH (n:${dropdown_str})`;
+
                 }
             }else if (id.startsWith('attribute_dropdown')){
                 // console.log("document.getElementById(id).value",document.getElementById(id).textContent)
@@ -612,6 +674,7 @@
                 }else if(dropdown_str.includes("'")) {
                     condition += `WHERE n.name = "${dropdown_str}" RETURN n.TrueLabel;`;
                 }
+
                 else {
 
                     condition += `WHERE n.name = '${dropdown_str}' RETURN n.TrueLabel;`;
@@ -639,16 +702,17 @@
             }
 
         }
-        console.log("joint list2",index_lists)
+        // console.log("joint list2",index_lists)
         // WHERE  n.TrueLabel CONTAINS "148"  and  NOT n.redundancy
         get_index_list_return_query(index_lists)
         // console.log("index_list",index_list)
     }
 
-    function get_index_list_return_query(index_lists){
-        var query_str="WHERE "
+    function get_index_list_return_query(raw_index_lists){
+        const index_lists = filterNumericStrings(raw_index_lists);
+        let query_str = "WHERE ";
         for (const [index, value] of   index_lists.entries()) {
-            console.log(index,value)
+            // console.log(index,value)
             if (index===0){
                 query_str+=` n.TrueLabel =~ \".*_${value}$\"  `
             }else {
@@ -658,16 +722,22 @@
             // 在此处处理每个元素 id
         }
         query_str+=" and  NOT n.redundancy"
-        console.log(query_str)
+        // console.log(query_str)
         if (index_lists.length!==0){
             session_elem(query_str);
         }
-        document.getElementById('result').textContent=`${index_lists.length} Cases found`
+
         // console.log(condition);
         call_back_index(index_lists)
     }
     function call_back_index(index_list){
+
         global_index_list=index_list
+
+        document.getElementById('result').textContent=`${global_index_list.length} Cases found`
+        if (global_index_list.length===0){
+            alert("No cases found.")
+        }
         fetch('http://127.0.0.1:5001/post_multi', {
             method: 'POST',
             headers: {
@@ -684,7 +754,7 @@
 
         }
         // 使用 filter 方法来找到在 arr2 中也存在的 arr1 的元素
-        console.log(arr1,arr2)
+        // console.log(arr1,arr2)
         return arr1.filter(function(element) {
             return arr2.includes(element);
         });
@@ -700,19 +770,7 @@
         // 设置 SVG 尺寸
         const width = window.innerWidth;
         const height = window.innerHeight;
-        // console.log(nodes)
-        const tableBody = document.querySelector("#dataTable tbody");
-        // const width = 800, height = 600;
-        //
-        // // 创建 SVG 容器
-        // const svg = d3.select("body").append("svg")
-        //     .attr("width", width)
-        //     .attr("height", height)
-        //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
-        //     .append("g");
-        //
-        // // 创建力导向图
-        //
+
 
         update_row(nodes);
 
@@ -877,15 +935,16 @@
             // return group;
         })
     }
-    let button = document.getElementById("all_lines");
+    let all_lines_button = document.getElementById("all_lines");
 
     // 添加点击事件处理程序
-    button.addEventListener("click", function() {
-        iframe.style.display="block"
+    all_lines_button.addEventListener("click", function() {
+        // iframe.style.display="block"
 
-        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("small");
+        // iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("small");
         src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("big");
-
+        // window.location.href =src_
+        window.open(src_, '_blank');
 // alert("按钮被点击了！");
 
     });
@@ -972,52 +1031,7 @@
             });
 
         update_row(nodes);
-        // const checkbox = document.getElementById('show_labels');
-        // if (checkbox.checked) {
-        //     // 启用 .nodeThreeObject 属性
-        //     update_row();
-        // } else {
-        //     // 禁用 .nodeThreeObject 属性
-        //     Graph.nodeThreeObject(null); // 将 .nodeThreeObject 设置为 null
-        // }
-        // function update_row(){
-        //     tableBody.innerHTML = "";
-        //     Graph.nodeThreeObject(node => {
-        //
-        //
-        //         const row = document.createElement('tr');
-        //
-        //         const labelCell = document.createElement('td');
-        //         labelCell.textContent = node.TrueLabel;
-        //
-        //         const captionCell = document.createElement('td');
-        //         captionCell.textContent = node.caption;
-        //
-        //
-        //         row.appendChild(labelCell);
-        //         row.appendChild(captionCell);
-        //         tableBody.appendChild(row);
-        //         // const sprite = new THREE.TextSprite({
-        //         //     fontSize:5, // 适当调整
-        //         //     color: 'white',
-        //         //     text: node.label +"  :  "+ node.caption,
-        //         // });
-        //
-        //         // const group = new THREE.Group();
-        //         // group.add(sprite);
-        //         // return group;
-        //     })
-        // }
 
-        // checkbox.addEventListener('change', function () {
-        //     if (checkbox.checked) {
-        //         // 启用 .nodeThreeObject 属性
-        //         update_row();
-        //     } else {
-        //         // 禁用 .nodeThreeObject 属性
-        //         Graph.nodeThreeObject(null); // 将 .nodeThreeObject 设置为 null
-        //     }
-        // });
         document.addEventListener('mousemove', e => {
             if (Graph) {
                 if (iframe.style.display==="block"){
