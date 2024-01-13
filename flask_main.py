@@ -57,8 +57,11 @@ def post_multi():
 @app.route('/get_case_list', methods=['GET'])
 def get_data():
     # 这里可以添加处理GET请求的逻辑
+
     if "case_list" in session:
-        return jsonify({"receivedData":session['case_list']})
+        temp_case_list=session['case_list']
+        del session['case_list'] #avoid jet lag
+        return jsonify({"receivedData":temp_case_list})
 
 
 @app.route('/iframe_page')

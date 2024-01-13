@@ -29,7 +29,7 @@
 </head>
 <body>
 
-<h1>Form from cases.csv Headers</h1>
+<h1>Update cases</h1>
 <div id="form" class="form-frame"></div>
 <button id="confirmBtn">Confirm</button>
 <button id="fillBtn">Fill Text Inputs</button>
@@ -89,7 +89,7 @@
       const resultList = await session_get_index.run(query);
 
       const numbers = resultList.records.map(record => parseFloat(record.get('name'))).filter(num => !isNaN(num));
-      console.log("resultList", numbers,Math.max(...numbers)); // 这里是您的列表
+      console.log("resultList", numbers,Math.max(...numbers)); // index start from 0
 
 // 打印新列表以验证结果
 //             console.log(newList);

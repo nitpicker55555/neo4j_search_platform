@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, Column, Integer, String, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy
+from cos_sim import calculate_combined_similarity
 # 清洗列名，确保它们是有效的 Python 变量名
 def clean_column_name(column_name):
     # column_name = re.sub(r'[^a-zA-Z0-9_]', '', column_name)  # 移除不合法字符
@@ -64,8 +65,38 @@ def seach_function(index_list):
         else:
             print("No record found with Index")
     return return_list
+# return_list=seach_function([1])
+def search_similar(target_index):
+    query = session.query(DynamicModel)
+    results = query.all()
+    # 将结果转换为字典列表
+    all_dicts=[]
+    for each_case in results:
+        all_dicts .append( {key: value for key, value in each_case.__dict__.items() if not key.startswith('_')})
+    print(all_dicts[0])
+    print(len(all_dicts))
 
+    analyse_dict_list=[]
+    boolean_header=[ 'Data_acquisition', 'Data_access', 'Data_modeling', 'Behavior_tracking', 'Behavior_prediction', 'Behaviour_nudging', 'Wrong_user_group', 'Wrong_user_task', 'Surprising_learning_result', 'Positive design that produces negative results that do not meet expectations', 'Negative design that produces negative results that meet expectations', 'Overly human-like and leading to ethics problems', 'Not human-like enough to cause ethics problems', 'Not enough beyond human to cause ethics problems', 'ethics issues caused by the wrong user group', 'ethics issues due to wrong user tasks', 'Infringements on human rights', 'Social detriment', 'Emotional or psychological injury', 'Loss of opportunity', 'Physical injury', 'Economic loss', 'Transparency', 'Justice and fairness', 'Privacy', 'Trust', 'Non-maleficence', 'Responsibility']
+    str_header=[]
+    #
+    target={}
+    for each_case in all_dicts:
+        need_dict={"one_hot":[],"content":[],"Index":0}
+        if each_case['Index']==target_index:
+            target=each_case
+        for header in each_case:
+            if header in boolean_header:
+                need_dict["one_hot"].append(each_case[header])
+            elif header=="Index":
+                need_dict['Index']=each_case[header]
+            else:
+                if header!="degree of influence":
+                    need_dict['content'].append(each_case[header])
 
-# seach_function("1")
+        analyse_dict_list.append(need_dict)
+    similar_index_list=(calculate_combined_similarity(analyse_dict_list,target))
+    print(similar_index_list)
+    return similar_index_list
 # 关闭 session
 # session.close()
