@@ -20,8 +20,9 @@
         display: flex;
         z-index: 999;
         justify-content: center;
-        top: 10px;
-        left: 300px;
+        top: 50px;
+        left: 0px;
+
     }
     /* Checkbox与标签排列 */
     .checkbox-item {
@@ -31,7 +32,7 @@
 
     }
     #Caption{
-        position: absolute;
+        position: relative;
         font-style: italic;
         font-weight: bold;
         z-index: 999;
@@ -127,7 +128,7 @@
         display: flex;
         align-items: center;
         width: 100px;
-        top: 40px;
+        top: 100px;
         /* other styles as needed... */
     }
 
@@ -206,23 +207,22 @@
 <label id="Caption">AI ethics visual analysis platform</label>
 
 <div class="checkbox-container">
-    <div class="checkbox-item">
-<!--        <input type="checkbox" id="show_labels">-->
-<!--        <label for="show_labels" >Show all labels</label>-->
 
-    </div>
     <div class="checkbox-item">
         <input type="checkbox" id="check3d">
         <label for="check3d">3D</label>
         <button id="plus_button">+</button>
         <button id="minus_button">-</button>
         <label  id="result">1 Case found</label>
-        <button id="all_lines">All data</button>
+        <button id="btn_similarity">Similarity</button>
+        <button id="all_lines">Parallel Coordinate Plot</button>
+        <button action="/second" type="submit">Add data</button>
 
     </div>
-    <form action="/second",class="checkbox-item">
-        <button type="submit">Add data</button>
-    </form>
+<!--    <form action="/second",class="checkbox-item">-->
+<!--        -->
+<!--    </form>-->
+
 
 </div>
 <div class="element-group">
@@ -299,7 +299,7 @@
 
 // 获取 document.body 的子元素总数，仅包括元素节点
         var totalChildElements = document.body.children.length;
-        clickCount=totalChildElements-8
+        clickCount=totalChildElements-9
         // console.log("Total child nodes: " + totalChildNodes);
         console.log("Total child elements: " + totalChildElements);
         console.log('clickCount'+clickCount)
@@ -346,7 +346,7 @@
         var lastChild = document.body.lastChild;
 
 // 从 document.body 中移除这个子节点
-        if (totalChildElements>9){
+        if (totalChildElements>10){
             document.body.removeChild(lastChild);
         }
 
@@ -531,6 +531,50 @@
         if (typeof str != "string") return false; // 只处理字符串
         return !isNaN(str) && !isNaN(parseFloat(str));
     }
+
+    const btn_similarity = document.getElementById("btn_similarity");
+
+
+    // let isHidden = false;
+
+    btn_similarity.addEventListener("click", () => {
+        fetch('http://127.0.0.1:5001/post_similarity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "simi": global_index_list }),
+        })
+            .then(response => response.json())
+            .then(data =>{
+                    console.log(data)
+                    const simi_index_list=data
+                    console.log(simi_index_list['receivedData'])
+                get_index_list_return_query(simi_index_list['receivedData']);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+
+        // const elementsToHide = document.querySelectorAll('[id^="ai-caption"]');
+        // elementsToHide.forEach(element => {
+        //     if (isHidden) {
+        //         element.style.display = "block";
+        //     } else {
+        //         element.style.display = "none";
+        //     }
+        // });
+        // const selects = document.querySelectorAll('select');
+        // selects.forEach(select => {
+        //     if (isHidden) {
+        //         select.style.display = "block";
+        //     } else {
+        //         select.style.display = "none";
+        //     }
+        // });
+        // isHidden = !isHidden;
+    });
     async function update_search(){
         const selects = document.querySelectorAll('select');
 
@@ -597,6 +641,11 @@
         }
         console.log("joint list2",index_lists)
         // WHERE  n.TrueLabel CONTAINS "148"  and  NOT n.redundancy
+        get_index_list_return_query(index_lists)
+        // console.log("index_list",index_list)
+    }
+
+    function get_index_list_return_query(index_lists){
         var query_str="WHERE "
         for (const [index, value] of   index_lists.entries()) {
             console.log(index,value)
@@ -616,10 +665,18 @@
         document.getElementById('result').textContent=`${index_lists.length} Cases found`
         // console.log(condition);
         call_back_index(index_lists)
-        // console.log("index_list",index_list)
     }
     function call_back_index(index_list){
         global_index_list=index_list
+        fetch('http://127.0.0.1:5001/post_multi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "multi": global_index_list }),
+        })
+            .then(response => response.json())
+            .then(data => console.log(data));
     }
     function findCommonElements(arr1, arr2) {
         if (arr1.length===0){
@@ -824,26 +881,18 @@
 
     // 添加点击事件处理程序
     button.addEventListener("click", function() {
-        // alert("按钮被点击了！");
+        iframe.style.display="block"
+
+        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("small");
+        src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("big");
+
+// alert("按钮被点击了！");
 
     });
 
     // 添加鼠标悬停事件处理程序''
 
     button.addEventListener("mouseover", function() {
-        iframe.style.display="block"
-        fetch('http://127.0.0.1:5001/post_multi', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ "multi": global_index_list }),
-        })
-            .then(response => response.json())
-            .then(data => console.log(data));
-        iframe.src = "{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("small");
-        src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("big");
-
 
 
     });
@@ -1002,6 +1051,7 @@
             await session_get_index.close(); // 确保在结束时关闭会话
         }
     }
+    //function that pass parameters to three-d and two-d
     function session_elem(condition){
         var session = driver.session({database:"neo4j"});
 

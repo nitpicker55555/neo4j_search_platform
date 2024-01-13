@@ -4,6 +4,9 @@ from collections import defaultdict
 from gensim import corpora, models, similarities
 
 def calculate_combined_similarity(documents, target):
+    # print(len(documents),len(target))
+    # print("target",target)
+
     target_index = target['Index']
     target_one_hot = target["one_hot"]
     target_contents = target["content"]

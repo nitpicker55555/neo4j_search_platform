@@ -1,6 +1,5 @@
-from flask import Flask, request, render_template_string,render_template,jsonify,session
-import json
-import csv,os
+from flask import Flask, request,render_template,jsonify,session
+
 from CreateDatabase import CreateDatabase
 
 import csv_data_search
@@ -12,11 +11,7 @@ app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统�
 Session(app)
 
 instance_class=CreateDatabase()
-file_path = 'static/KG_cases_labeled.csv'  # 替换为你的文件路径
-if os.path.exists(file_path):
-    print(f"The path '{file_path}' exists.")
-else:
-    print(f"The path '{file_path}' does not exist.")
+
 @app.route('/')
 def index():
     return render_template(('3dgraph.html'))  # Load the HTML file as a template
@@ -54,13 +49,29 @@ def post_multi():
         #     raise Exception ("no data found")
     return jsonify({'receivedData': "success"})
 
+@app.route('/post_similarity', methods=['POST'])
+def post_similarity():
+    # 获取 JSON 数据
+    data = request.json
+    if data!={}:
+        multi_index_list=data['simi']
+
+        data=csv_data_search.search_similar(multi_index_list)
+        print(data)
+        # print(data)
+        # if data!={}:
+        #     return jsonify({'receivedData': data})
+        # else:
+        #     raise Exception ("no data found")
+    return jsonify({'receivedData': data})
+
 @app.route('/get_case_list', methods=['GET'])
 def get_data():
     # 这里可以添加处理GET请求的逻辑
 
     if "case_list" in session:
         temp_case_list=session['case_list']
-        del session['case_list'] #avoid jet lag
+        # del session['case_list'] #avoid jet lag
         return jsonify({"receivedData":temp_case_list})
 
 
