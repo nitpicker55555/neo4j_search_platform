@@ -268,6 +268,7 @@
     //     .attr("height", height)
     //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
     //     .append("g");
+    const checkbox_3d=document.getElementById('check3d')
     var svg_num=0
     var global_index_list=[]
     let isQueryRunning = false; // 标志来跟踪查询状态
@@ -301,7 +302,12 @@
 
 // 获取 document.body 的子元素总数，仅包括元素节点
         var totalChildElements = document.body.children.length;
-        clickCount=totalChildElements-8
+        if (checkbox_3d.checked) {
+            clickCount=totalChildElements-7
+        }else {
+            clickCount=totalChildElements-8
+        }
+
         // console.log("Total child nodes: " + totalChildNodes);
         console.log("Total child elements: " + totalChildElements);
         console.log('clickCount'+clickCount)
@@ -348,9 +354,16 @@
         var lastChild = document.body.lastChild;
 
 // 从 document.body 中移除这个子节点
-        if (totalChildElements>9){
-            document.body.removeChild(lastChild);
+        if (checkbox_3d.checked) {
+            if (totalChildElements>8){
+                document.body.removeChild(lastChild);
+            }
+        }else {
+            if (totalChildElements>9){
+                document.body.removeChild(lastChild);
+            }
         }
+
 
     });
     // console.log(getNumber,"asd")
@@ -1095,14 +1108,21 @@
 
 
                 // three_d()
-                const checkbox_3d=document.getElementById('check3d')
-                checkbox_3d.addEventListener('change', function () {
 
+                checkbox_3d.addEventListener('change', function () {
+                    var labels = document.getElementsByTagName('label');
                     if (checkbox_3d.checked) {
+
+                        for(var i = 0; i < labels.length; i++) {
+                            labels[i].style.color = 'white';
+                        }
                         // 启用 .nodeThreeObject 属性
                         d3.select("body").selectAll("svg").remove();
                         three_d(Object.values(nodes), links)
                     } else {
+                        for(var i = 0; i < labels.length; i++) {
+                            labels[i].style.color = 'black';
+                        }
                         // 禁用 .nodeThreeObject 属性
                         document.getElementById('3d-graph').innerHTML = '';
 

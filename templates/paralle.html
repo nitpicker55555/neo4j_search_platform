@@ -43,7 +43,9 @@
         stroke: #000;
         shape-rendering: crispEdges;
     }
-
+    #coordinates {
+        white-space: pre-wrap;
+    }
     .axis text {
         text-shadow: 0 0px 0 #fff;
     }
@@ -59,6 +61,16 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <!--<textarea id="data-output" rows="10" cols="50"></textarea>-->
 <script>
+    function extractIndexes(listOfDicts) {
+        var indexList = [];
+        for (var i = 0; i < listOfDicts.length; i++) {
+            var dict = listOfDicts[i];
+            if (dict.hasOwnProperty("Index")) {
+                indexList.push(dict["Index"]);
+            }
+        }
+        return indexList;
+    }
     function wrap(text, width) {
         text.each(function() {
             var text = d3.select(this),
@@ -222,6 +234,7 @@
                         .then(response => response.json())
                         .then(data => {
                             draw_lines(data)
+                            d3.select(".background path").style("stroke-opacity", 1);  // 假设新的透明度为0.5
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -242,6 +255,7 @@
                         .then(response => response.json())
                         .then(data => {
                             draw_lines(data)
+                            d3.select(".background path").style("stroke-opacity", .1); // 假设新的透明度为0.5
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -252,16 +266,7 @@
             }
 
         }
-        function extractIndexes(listOfDicts) {
-            var indexList = [];
-            for (var i = 0; i < listOfDicts.length; i++) {
-                var dict = listOfDicts[i];
-                if (dict.hasOwnProperty("Index")) {
-                    indexList.push(dict["Index"]);
-                }
-            }
-            return indexList;
-        }
+
         function draw_lines(data){
             if (Object.keys(data).length === 0) {
                 // If the data is empty, wait for some time and try again
@@ -278,7 +283,11 @@
             global_index=extractIndexes(selectedRows_num)
             // console.log(selectedRows_str)
             // console.log(selectedRows_num)
-            document.getElementById("coordinates").innerText=JSON.stringify(selectedRows_num, null)
+            document.getElementById("coordinates").innerText =
+                "Selected count: " + selectedRows_num.length.toString() + "\n\n" +
+                "        Cases Index: " + global_index.toString() + "        " +
+                JSON.stringify(selectedRows_num);
+
             if (paramMap.param3==="big") {
                 d3.select("svg").style("font", "15px sans-serif");
             }
@@ -364,6 +373,9 @@
         output.property("value", "Selected count: " + visibleData.length + "\n\n");  // 显示选中的数量
 
         visibleData.forEach(function(d) {
+
+            global_index=extractIndexes(d)
+            // output.property("value","Cases index: " + global_index + "\n\n")
             output.property("value", output.property("value") + JSON.stringify(d) + "\n");
         });
     }
