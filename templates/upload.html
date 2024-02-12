@@ -30,8 +30,19 @@
 <body>
 
 <h1>Update cases</h1>
+<!--<form method="POST" action="/fetch">  &lt;!&ndash; 修改了这里 &ndash;&gt;-->
+<!--  <input type="text" name="url" placeholder="Enter URL here" style="width: 300px;"/>-->
+<!--  <input type="submit" value="Fetch"/>-->
+<!--</form>-->
+<input type="text"  id="inputText"  name="url" placeholder="Enter URL here" style="width: 300px;"/>
+<input type="submit"  id="submitButton"/>
+<form action="/upload_doc" method="post" enctype="multipart/form-data">
+  <input type="file" name="wordfile">
+  <input type="submit">
+</form>
 <div id="form" class="form-frame"></div>
 <button id="confirmBtn">Confirm</button>
+
 <!--<button id="fillBtn">Fill Text Inputs</button>-->
 <script>
   const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "12345678"),{encrypted: false});
@@ -138,15 +149,61 @@
     });
 
   });
-  document.getElementById('fillBtn').addEventListener('click', function() {
+  document.getElementById('submitButton').addEventListener('click', function() {
+    var inputText = document.getElementById('inputText').value;
+
+    fetch('/fetch_web', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({text: inputText}),
+    })
+            .then(response => response.json())
+            .then(data => {
+              // document.getElementById('responseText').textContent = data.reply;
+              for (const key in data['reply']) {
+
+                  // console.log(`Key: ${key}, Value: ${data[key]}`);
+                  fill_form(data['reply'][key],key)
+
+              }
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+  });
+  document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('/upload_doc', {
+      method: 'POST',
+      body: formData,
+    })
+            .then(response => response.json())
+            .then(data => {
+              console.log(data.content); // 在这里处理返回的内容
+            })
+            .catch(error => console.error('Error:', error));
+  });
+  function fill_form(string,label_name){
     var textInputs = document.querySelectorAll('#form input[type="text"]');
     textInputs.forEach(function(input) {
       var label = input.previousElementSibling;
-      if (label && label.tagName === 'LABEL' &&  !label.textContent.trim().startsWith('1. Index:')) {
-        input.value = label.textContent.replace(/:\s*$/, ''); // Remove colon and trailing spaces
+      if (label && label.tagName === 'LABEL' &&  label.textContent.trim().includes(label_name)) {
+        input.value = string; // Remove colon and trailing spaces
       }
     });
-  });
+  }
+  // document.getElementById('fillBtn').addEventListener('click', function() {
+  //   var textInputs = document.querySelectorAll('#form input[type="text"]');
+  //   textInputs.forEach(function(input) {
+  //     var label = input.previousElementSibling;
+  //     if (label && label.tagName === 'LABEL' &&  !label.textContent.trim().startsWith('1. Index:')) {
+  //       input.value = label.textContent.replace(/:\s*$/, ''); // Remove colon and trailing spaces
+  //     }
+  //   });
+  // });
    function index_fill() {
      // const getNumber=  queryDatabase();
      // console.log(getNumber,"asd")

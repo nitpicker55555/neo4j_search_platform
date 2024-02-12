@@ -1,2 +1,7 @@
-a=[ 'Data_acquisition', 'Data_access', 'Data_modeling', 'Behavior_tracking', 'Behavior_prediction', 'Behaviour_nudging', 'Wrong_user_group', 'Wrong_user_task', 'Surprising_learning_result', 'Positive design that produces negative results that do not meet expectations', 'Negative design that produces negative results that meet expectations', 'Overly human-like and leading to ethics problems', 'Not human-like enough to cause ethics problems', 'Not enough beyond human to cause ethics problems', 'ethics issues caused by the wrong user group', 'ethics issues due to wrong user tasks', 'Infringements on human rights', 'Social detriment', 'Emotional or psychological injury', 'Loss of opportunity', 'Physical injury', 'Economic loss', 'Transparency', 'Justice and fairness', 'Privacy', 'Trust', 'Non-maleficence', 'Responsibility']
-print(len(a))
+from transformers import pipeline
+
+qa_model = pipeline("question-answering", "timpal0l/mdeberta-v3-base-squad2")
+question = "Where do I live?"
+context = "My name is Tim and I live in Sweden. I don't like ice scream"
+answer=qa_model(question = question, context = context)
+

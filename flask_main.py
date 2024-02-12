@@ -1,11 +1,12 @@
+import requests
 from flask import Flask, request,render_template,jsonify,session
-
+from lxml import html
 from CreateDatabase import CreateDatabase
-
+from pro_web import get_content_from_web
 import csv_data_search
 import csv_database_update
 from flask_session import Session
-
+import docx
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统中
 Session(app)
@@ -35,7 +36,7 @@ def post_single():
     return jsonify({'receivedData': data})
 @app.route('/post_multi', methods=['POST'])
 def post_multi():
-    # 获取 JSON 数据
+
     data = request.json
     if data!={}:
         multi_index_list=data['multi']
@@ -51,7 +52,7 @@ def post_multi():
 
 @app.route('/post_similarity', methods=['POST'])
 def post_similarity():
-    # 获取 JSON 数据
+
     data = request.json
     if data!={}:
         multi_index_list=data['simi']
@@ -66,7 +67,7 @@ def post_similarity():
     return jsonify({'receivedData': data})
 @app.route('/post_del', methods=['POST'])
 def post_del():
-    # 获取 JSON 数据
+
     data = request.json
     if data!={}:
         multi_index_list=data['del']
@@ -80,16 +81,59 @@ def post_del():
         # else:
         #     raise Exception ("no data found")
     return jsonify({'receivedData': "successful"})
+@app.route('/fetch_web', methods=['GET', 'POST'])
+def fetch_web():
+    xpath_dict={"Case theme":'Short Description','Fields':['AI Applications','AI Techniques'],'Users':'Technology Purveyor','Provider':['System Developer','Technology Purveyor'],'Influencer':'Named Entities','Results':'','Reason':['AI System Description','Harm Distribution Basis','Intent','Harm Type'],'Opinion':'','Attitude':'Severity','Response':'','Description':'Full Description','Place':'Location','Time':'Incident Date','degree of influence':'Severity'}
 
+    data = request.json
+
+    text = data.get('text')
+    print(text,"text")
+    web_dict=get_content_from_web(text)
+    # print(web_dict)
+    return_dict={"URL":text}
+    for item in xpath_dict:
+        if isinstance(xpath_dict[item],list):
+            for attribute in xpath_dict[item]:
+                try:
+                    return_dict[item]=web_dict[attribute]
+                    # print(item,return_dict[item])
+                    break
+                except KeyError:
+                    return_dict[item] =''
+                    # print('aa')
+
+        else:
+            try:
+                return_dict[item] = web_dict[xpath_dict[item]]
+
+            except:
+                return_dict[item] =''
+
+    # 假设我们简单地将接收到的文本返回
+    response = {"reply":return_dict}
+    return jsonify(response)
 @app.route('/get_case_list', methods=['GET'])
 def get_data():
-    # 这里可以添加处理GET请求的逻辑
+
 
     if "case_list" in session:
         temp_case_list=session['case_list']
         # del session['case_list'] #avoid jet lag
         return jsonify({"receivedData":temp_case_list})
-
+@app.route('/upload_doc', methods=['POST'])
+def upload_doc():
+    if 'wordfile' not in request.files:
+        return jsonify({"error": "No file part"})
+    file = request.files['wordfile']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"})
+    if file:
+        doc = docx.Document(file)
+        fullText = []
+        for para in doc.paragraphs:
+            fullText.append(para.text)
+        return jsonify({"content": "\n".join(fullText)})
 
 @app.route('/iframe_page')
 def iframe_page():
@@ -98,7 +142,7 @@ def iframe_page():
         param1 = request.args.get('param1', default_value)  # 替换 default_value 为默认值
         param2 = request.args.get('param2', default_value)
         param3 = request.args.get('param3', default_value)
-        # 处理这些参数...
+
         return render_template('paralle.html', param1=param1, param2=param2,param3=param3)
 @app.route('/submit', methods=['POST'])
 
@@ -125,4 +169,4 @@ def submit():
     return {'status': 'success', 'message': 'Data received'}
 
 if __name__ == '__main__':
-    app.run(debug=True,port=5001)
+    app.run(debug=True,port=5002)
