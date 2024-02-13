@@ -6,6 +6,7 @@ from pro_web import get_content_from_web
 import csv_data_search
 import csv_database_update
 from flask_session import Session
+import text_process
 import docx
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统中
@@ -133,7 +134,24 @@ def upload_doc():
         fullText = []
         for para in doc.paragraphs:
             fullText.append(para.text)
-        return jsonify({"content": "\n".join(fullText)})
+        return jsonify({"reply": "\n".join(fullText)})
+@app.route('/process_text', methods=['POST'])
+def process_text():
+    data = request.json
+
+    allText = data.get('text')
+    form_dict={"Case theme":'','Users':'','Provider':'','Influencer':'','Description':'','Time':'','Place':''}
+    if allText:
+
+        form_dict["Case theme"]=text_process.summary_extract(allText)
+        form_dict["Description"]=form_dict["Case theme"]
+        form_dict["Users"]=text_process.entites_extract(allText)
+        form_dict["Provider"]=form_dict["Users"]
+        form_dict["Influencer"]=form_dict["Users"]
+        form_dict["Place"],form_dict["Time"]=text_process.location_time_extract(allText)
+
+
+        return jsonify({"reply":form_dict})
 
 @app.route('/iframe_page')
 def iframe_page():

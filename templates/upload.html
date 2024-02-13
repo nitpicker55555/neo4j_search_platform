@@ -40,6 +40,8 @@
   <input type="file" name="wordfile">
   <input type="submit">
 </form>
+<textarea id="text_content" rows="10" cols="50"></textarea>
+<button id="submit_text">submit</button>
 <div id="form" class="form-frame"></div>
 <button id="confirmBtn">Confirm</button>
 
@@ -173,6 +175,30 @@
               console.error('Error:', error);
             });
   });
+  document.getElementById('submit_text').addEventListener('click', function() {
+    var inputText = document.getElementById('text_content').value;
+
+    fetch('/process_text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({text: inputText}),
+    })
+            .then(response => response.json())
+            .then(data => {
+              // document.getElementById('responseText').textContent = data.reply;
+              for (const key in data['reply']) {
+
+                  // console.log(`Key: ${key}, Value: ${data[key]}`);
+                  fill_form(data['reply'][key],key)
+
+              }
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+  });
   document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     const formData = new FormData(this);
@@ -182,7 +208,8 @@
     })
             .then(response => response.json())
             .then(data => {
-              console.log(data.content); // 在这里处理返回的内容
+                  document.getElementById('text_content').value=data['reply']
+                  document.getElementById('submit_text').click()
             })
             .catch(error => console.error('Error:', error));
   });
