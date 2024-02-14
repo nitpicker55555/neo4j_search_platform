@@ -61,6 +61,38 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <!--<textarea id="data-output" rows="10" cols="50"></textarea>-->
 <script>
+    function findCommonKeys(dictList) {
+        const commonKeys = {};
+
+        // 获取第一个字典
+        const firstDict = dictList[0];
+
+        // 遍历第一个字典的键
+        Object.keys(firstDict).forEach(key => {
+            const value = firstDict[key];
+            let isCommon = true;
+
+            // 检查每个字典的相应键的值是否相同
+            for (let i = 1; i < dictList.length; i++) {
+                if (dictList[i][key] !== value) {
+                    isCommon = false;
+                    break;
+                }
+            }
+
+            // 如果所有字典中相应键的值都相同，则将该键添加到结果中
+            if (isCommon) {
+                commonKeys[key] = value;
+            }
+        });
+        let resultString = '';
+        let commonKeys_len;
+        for (const key in commonKeys) {
+            resultString += `${key}: ${commonKeys[key]}\n`;
+        }
+        commonKeys_len=Object.keys(commonKeys).length
+        return {resultString, commonKeys_len};
+    }
     function extractIndexes(listOfDicts) {
         var indexList = [];
         for (var i = 0; i < listOfDicts.length; i++) {
@@ -219,38 +251,7 @@
             }
             return sum_numericData;
         }
-        function findCommonKeys(dictList) {
-            const commonKeys = {};
 
-            // 获取第一个字典
-            const firstDict = dictList[0];
-
-            // 遍历第一个字典的键
-            Object.keys(firstDict).forEach(key => {
-                const value = firstDict[key];
-                let isCommon = true;
-
-                // 检查每个字典的相应键的值是否相同
-                for (let i = 1; i < dictList.length; i++) {
-                    if (dictList[i][key] !== value) {
-                        isCommon = false;
-                        break;
-                    }
-                }
-
-                // 如果所有字典中相应键的值都相同，则将该键添加到结果中
-                if (isCommon) {
-                    commonKeys[key] = value;
-                }
-            });
-            let resultString = '';
-            let commonKeys_len;
-            for (const key in commonKeys) {
-                resultString += `${key}: ${commonKeys[key]}\n`;
-            }
-            commonKeys_len=Object.keys(commonKeys).length
-            return {resultString, commonKeys_len};
-        }
 
 
         async function fetchData() {
@@ -412,8 +413,15 @@
 
         // 更新textarea的内容
         var output = d3.select("#coordinates");
-        output.property("value", "Selected count: " + visibleData.length + "\n\n");  // 显示选中的数量
-
+        // let selectedRows_num;
+        let selectedRows_str;
+        let result;
+        let commonKeys,len_commonKeys;
+        // selectedRows_num=filterNumericKeys(visibleData)
+        result=findCommonKeys(visibleData)
+        commonKeys=result.resultString
+        len_commonKeys=result.commonKeys_len
+        output.property("value","Selected count: " + visibleData.length + "\n\n"+ "Common keys: " +len_commonKeys + "\n"+commonKeys+ "\n\n");  // 显示选中的数量
         visibleData.forEach(function(d) {
 
             global_index=extractIndexes(d)

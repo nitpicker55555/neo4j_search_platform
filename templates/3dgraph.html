@@ -766,6 +766,8 @@
 
 
     function two_d(nodes, links) {
+        // console.log(nodes,"nodes")
+        // console.log(links,"links")
         const idToColorMap = {};
         // 设置 SVG 尺寸
         const width = window.innerWidth;
@@ -778,23 +780,17 @@
         let svg = d3.select("body").select("svg.fullscreen-svg");
         // let svgs = d3.select("2dsvg")
 
-        d3.select("body").selectAll("svg").remove();
+        d3.select("body").selectAll("svg").remove(); //remove old elements
 
 
-        svg = d3.select("body").append("svg")
-            .attr("class", "fullscreen-svg") // 添加类名以便使用 CSS 设置样式
-            // .attr("pointer-events", "all") // 确保 SVG 可以捕捉鼠标事件.
-            //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
-            //     .attr("height", "100%")
-            .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
-            .append("g");
+
         // let svgRect = svg.getBoundingClientRect();
-        let table_head=document.getElementById('dataTable')
-        // let table = document.querySelector("#dataTable tbody");
-        //
-        table_head.style.position = 'absolute';
-        table_head.style.top = '100vh'; // 设置表格的顶部位置在视口高度之外
-        table_head.style.zIndex = 2; // 确保表格在SVG之上
+        // let table_head=document.getElementById('dataTable')
+        // // let table = document.querySelector("#dataTable tbody");
+        // //
+        // table_head.style.position = 'absolute';
+        // table_head.style.top = '100vh'; // 设置表格的顶部位置在视口高度之外
+        // table_head.style.zIndex = 2; // 确保表格在SVG之上
         // const container = svg.append("g");
         // const svg = d3.select("#3d-graph")
         //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
@@ -842,7 +838,7 @@
                 // console.log(nodes.find(node => node.id === d.id).label)
                 return 1/(dict_level[nodes.find(node => node.id === d.id).label])*50;
             })
-            .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点设置颜色
+            .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点根据level设置颜色
         // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
 
 
@@ -939,6 +935,214 @@
                 .attr("y1", d => d.source.y)
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
+
+            node
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+    }
+    function id_node(nodes, links) {
+        console.log(nodes,"nodes")
+        console.log(links,"links")
+        const idToColorMap = {};
+        // 设置 SVG 尺寸
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        update_row(nodes);
+
+        // // 创建 SVG 容器
+        let svg = d3.select("body").select("svg.fullscreen-svg");
+        // let svgs = d3.select("2dsvg")
+
+        d3.select("body").selectAll("svg").remove(); //remove old elements
+
+
+        svg = d3.select("body").append("svg")
+            .attr("class", "fullscreen-svg") // 添加类名以便使用 CSS 设置样式
+            // .attr("pointer-events", "all") // 确保 SVG 可以捕捉鼠标事件.
+            //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
+            //     .attr("height", "100%")
+            .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+            .append("g");
+        // let svgRect = svg.getBoundingClientRect();
+        let table_head=document.getElementById('dataTable')
+        // let table = document.querySelector("#dataTable tbody");
+        //
+        table_head.style.position = 'absolute';
+        table_head.style.top = '100vh'; // 设置表格的顶部位置在视口高度之外
+        table_head.style.zIndex = 2; // 确保表格在SVG之上
+        // const container = svg.append("g");
+        // const svg = d3.select("#3d-graph")
+        //     .attr("width", "100%") // 假设你想要 SVG 充满其容器
+        //     .attr("height", "100%")
+        //     .attr("pointer-events", "all") // 确保 SVG 可以捕捉鼠标事件.
+        // .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
+
+        // 创建力导向图
+        let id_nodes=[]
+        let id_list= {}
+        let id_links= {}
+
+        for (const item of nodes) {
+            // console.log(item.TrueLabel);
+            const label_index=get_truelabel_index(item.TrueLabel)
+            if (!(label_index in id_list)){
+                id_nodes.push({"TrueLabel":"id_node_"+label_index,"label":label_index,"id":label_index})
+                id_list[label_index]=[]
+                id_links[label_index]=[]
+            }
+            id_links[label_index].push(item.id)
+            id_list[label_index].push(item)
+        }
+        const simulation = d3.forceSimulation(id_nodes)
+            // .force("link", d3.forceLink(links).id(d => d.id))
+            .force("charge", d3.forceManyBody().strength(-20))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collide", d3.forceCollide().radius(function(d) {
+                return 50; // 根据节点大小设置碰撞半径，+2 为额外间距
+            }))
+        // 创建链接线
+        // const link = svg.append("g")
+        //     .attr("class", "links")
+        //     .selectAll("line")
+        //     .data(links)
+        //     .enter().append("line")
+        //     .attr("stroke-width", 2)
+        //     .attr("stroke", "grey");
+
+        // 创建节点
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(id_nodes)
+            .enter().append("g")
+            // .enter().append("circle")
+            .attr("r", 5)
+            // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("click", clicked) // 假设有一个 clicked 函数来处理点击事件
+            .on("mouseover", hover_node); // 假设有一个 clicked 函数来处理点击事件
+
+
+
+        const circles = node.append("circle")
+            .attr("r",50)
+            .attr("fill", d => getColorById([id_nodes.find(node => node.id === d.id).label])) // 为每个节点根据level设置颜色
+        // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
+
+
+        // 在节点旁添加文本
+        const labels = node.append("text")
+            .text(d => id_nodes.find(node => node.id === d.id).label) // 每个节点对象有一个 'id' 属性作为名称
+            .attr("x", 0)
+            .attr("y", 0)
+            .style("text-anchor", "middle") // 确保文本以其中心点对齐到指定的 x 位置
+            .style("dominant-baseline", "central") // 垂直居中文本（对于大多数浏览器有效）
+            .style("font-size", "28px"); // 设置字号大小
+
+
+        function getColorById(id) {
+            // 定义颜色的起始和结束值
+            const startHue = 200; // 起始色调
+            const endHue = 300; // 结束色调
+            const saturation = 100; // 饱和度
+            const lightness = 60; // 亮度
+
+            // 如果这个 id 已经有一个颜色，就返回这个颜色
+            if (idToColorMap[id]) {
+                return idToColorMap[id];
+            }
+
+            // 计算当前 id 在总共 8 个 id 中的位置
+            const position = parseInt(id) / 8;
+
+            // 计算当前 id 对应的色调
+            const hue = startHue + (position * (endHue - startHue));
+
+            // 生成 HSL 颜色
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+            // 将颜色与 id 关联起来
+            idToColorMap[id] = color;
+
+            // 返回颜色
+            return color;
+        }
+
+        function create_new_link(list,id_list){
+            const new_link=[]
+            let source_index
+            let target_index
+            for (const item of list) {
+                console.log(item)
+                // console.log(item.TrueLabel);
+                source_index=(item.source)
+                target_index=(item.target)
+                if (id_list.includes(source_index) && id_list.includes(target_index)){
+                    new_link.push(item)
+                }
+            }
+            return new_link
+
+        }
+
+        function clicked(event, d) {
+            // 这里定义点击节点时的行为
+            console.log(d.id,"d.id")
+
+
+            two_d(id_list[d.id],create_new_link(links,id_links[d.id]),svg)
+            // const nodeWithId223 = id_nodes.find(node => node.id === d.id);
+            // const captionOfNode223 =  : undefined;
+            //
+            // 例如：在控制台打印节点的信息
+            // console.log(`caption: ${nodeWithId223.caption}`+`\nlabel: ${nodeWithId223.label}`);
+            // console.log();
+        }
+        function hover_node(event, d) {
+            // 这里定义点击节点时的行为
+            const nodeWithId223 = id_nodes.find(node => node.id === d.id);
+            const true_label_index=get_truelabel_index(id_nodes.find(node => node.id === d.id).TrueLabel)
+            // const captionOfNode223 =  : undefined;
+
+            const title=dict_nodes["Case_theme"+"_"+true_label_index]
+            const description=dict_nodes["Description"+"_"+true_label_index]
+            const content="<span class='normal bold'>Index: </span>"+true_label_index+"\n\n<span class='normal bold'>Title: </span>"+title+"\n\n<span class='normal bold'>Description: </span>"+description
+            document.getElementById('my-span').innerHTML=content
+            //
+            // 例如：在控制台打印节点的信息
+            // console.log(`caption: ${nodeWithId223.caption}`+`\nlabel: ${nodeWithId223.label}`);
+            // console.log();
+        }
+
+        // 节点拖动函数
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 缩放函数
+        function zoomed(event) {
+            svg.attr("transform", event.transform);
+        }
+
+        // 更新节点和链接的位置
+        simulation.on("tick", () => {
 
             node
                 .attr("transform", d => `translate(${d.x},${d.y})`);
@@ -1154,8 +1358,9 @@
                     three_d(Object.values(nodes), links)
                 } else {
                     // 禁用 .nodeThreeObject 属性
+                    id_node( Object.values(nodes), links);
 
-                    two_d( Object.values(nodes), links);
+                    // two_d( Object.values(nodes), links);
                 }
 
 
