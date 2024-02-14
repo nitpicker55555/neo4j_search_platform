@@ -15,6 +15,24 @@
         display: none;
         z-index: 999;
     }
+    .span-container {
+        position: absolute;
+        top: 10px;
+        z-index: 999;
+        right: 10px;
+        width: 200px; /* 可根据需要调整容器宽度 */
+        word-wrap: break-word;
+        display: inline-block;
+        white-space: pre-line;
+        font-style: italic;
+        font-size: small;
+    }
+    .bold {
+        font-weight: bold;
+    }
+    .normal {
+        font-style: normal;
+    }
     .checkbox-container {
         position: absolute;
         display: flex;
@@ -62,6 +80,7 @@
         left: 0;
         z-index: 1;
     }
+
     #label_check{
         position: absolute;
         /*font-style: italic;*/
@@ -89,25 +108,7 @@
         margin-left: 0px; /* space between ai_dropdown and searchInput */
     }
 
-    /*#ai_dropdown{*/
-    /*    position: absolute;*/
-    /*    left: 60px;*/
-    /*    z-index: 999;*/
-    /*    top:40px;*/
-    /*    width: 200px;*/
-    /*}*/
-    /*#ai-caption{*/
-    /*    position: absolute;*/
-    /*    z-index: 999;*/
-    /*    top:40px;*/
-    /*}*/
-    /*#searchInput{*/
-    /*    position: absolute;*/
-    /*    left: 280px;*/
-    /*    z-index: 999;*/
-    /*    top:40px;*/
-    /*    width: 205px;*/
-    /*}*/
+
 
     #suggestions{
         position: absolute;
@@ -187,10 +188,12 @@
     <script src="https://unpkg.com/three"></script>
     <script src="https://unpkg.com/@seregpie/three.text-texture"></script>
     <script src="https://unpkg.com/@seregpie/three.text-sprite"></script>
-    <script src="//unpkg.com/3d-force-graph"></script>
+    <script src="https://unpkg.com/3d-force-graph@1.73.2/dist/3d-force-graph.min.js"></script>
     <script src="https://unpkg.com/neo4j-driver"></script>
     <script src="https://unpkg.com/neovis.js@2.0.2"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
     <!--<script src="../../dist/3d-force-graph.js"></script>-->
 </head>
 <title>3D Knowledge Graph Platform</title>
@@ -227,6 +230,9 @@
 
 
 </div>
+<div class="span-container">
+    <span id="my-span">...</span>
+</div>
 <div class="element-group">
     <label for="ai_dropdown" id="ai-caption">Label:</label>
     <select id="ai_dropdown">
@@ -258,42 +264,23 @@
 <!--<div id="suggestions"></div>-->
 
 <script>
-    // const div = document.getElementById('3d-graph');
-    // const width = div.clientWidth;
-    // const height = div.clientHeight;
-    //
-    // // 创建 SVG 容器
-    // const svg = d3.select("body").append("svg")
-    //     .attr("width", width)
-    //     .attr("height", height)
-    //     .call(d3.zoom().on("zoom", zoomed)) // 添加缩放行为
-    //     .append("g");
+    var dict_level = {};
+    var dict_nodes={}
+    fetch('http://127.0.0.1:5002/post_level')
+        .then(response => response.json())
+            .then(data => {
+                dict_level = data.reply;
+                console.log('dict_level:', dict_level);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+
     const checkbox_3d=document.getElementById('check3d')
     var svg_num=0
     var global_index_list=[]
     let isQueryRunning = false; // 标志来跟踪查询状态
     var listener_list =[]
     let clickCount = 0;  // To keep track of how many times the button has been clicked
-    function getElementDistanceFromLeftEdge(element) {
-        // 获取元素相对于视口的位置
-        const rect = element.getBoundingClientRect();
 
-        // 计算元素左边缘距离屏幕左边缘的距离
-        const distance = rect.left + window.scrollX;
-
-        return distance;
-    }
-    function setEqualDistanceFromLeftEdge(element1, element2) {
-        // 计算第一个元素与屏幕左边缘的距离
-        const distance = element1.getBoundingClientRect().left;
-
-        // 应用相同的距离到第二个元素
-        // 这里假设元素使用绝对定位或固定定位
-        element2.style.left = distance + 'px';
-
-        // 如果元素是相对定位或静态定位，您可能需要使用 marginLeft
-        // element2.style.marginLeft = distance + 'px';
-    }
     document.getElementById('plus_button').addEventListener('click', function() {
         // Increment the click count
         clickCount++;
@@ -443,7 +430,7 @@
         console.log("selects",need_listen_list)
         console.log("listener_list",listener_list)
         need_listen_list.forEach((select, index, array) => {
-            // 检查 id 是否以 'aaa' 开头
+
             const select_dom=document.getElementById(select)
             console.log("select",select)
             if (select.startsWith('ai_dropdown')) {
@@ -558,7 +545,7 @@
     // let isHidden = false;
 
     btn_similarity.addEventListener("click", () => {
-        fetch('http://127.0.0.1:5001/post_similarity', {
+        fetch('http://127.0.0.1:5002/post_similarity', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -616,7 +603,7 @@
 
             })
 
-            fetch('http://127.0.0.1:5001/post_del', {
+            fetch('http://127.0.0.1:5002/post_del', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -751,7 +738,7 @@
         if (global_index_list.length===0){
             alert("No cases found.")
         }
-        fetch('http://127.0.0.1:5001/post_multi', {
+        fetch('http://127.0.0.1:5002/post_multi', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -818,9 +805,11 @@
         // 创建力导向图
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id))
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2));
-
+            .force("charge", d3.forceManyBody().strength(-20))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collide", d3.forceCollide().radius(function(d) {
+            return 40; // 根据节点大小设置碰撞半径，+2 为额外间距
+        }))
         // 创建链接线
         const link = svg.append("g")
             .attr("class", "links")
@@ -843,35 +832,57 @@
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended))
-            .on("click", clicked); // 假设有一个 clicked 函数来处理点击事件
+            .on("click", clicked) // 假设有一个 clicked 函数来处理点击事件
+            .on("mouseover", hover_node); // 假设有一个 clicked 函数来处理点击事件
 
 
 
         const circles = node.append("circle")
-            .attr("r", 5)
-            .attr("fill", d => getColorById(get_truelabel_index(nodes.find(node => node.id === d.id).TrueLabel))) // 为每个节点设置颜色
+            .attr("r", function(d) {
+                // console.log(nodes.find(node => node.id === d.id).label)
+                return 1/(dict_level[nodes.find(node => node.id === d.id).label])*50;
+            })
+            .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点设置颜色
         // .attr("fill", d => getColorById(nodes.find(node => node.id === d.id).label)) // 为每个节点设置颜色
 
 
         // 在节点旁添加文本
         const labels = node.append("text")
-            .text(d => nodes.find(node => node.id === d.id).label) // 假设每个节点对象有一个 'id' 属性作为名称
+            .text(d => nodes.find(node => node.id === d.id).label) // 每个节点对象有一个 'id' 属性作为名称
             .attr("x", 6)
             .attr("y", 3);
 
 
 
         function getColorById(id) {
+            // 定义颜色的起始和结束值
+            const startHue = 0; // 起始色调
+            const endHue = 300; // 结束色调
+            const saturation = 100; // 饱和度
+            const lightness = 60; // 亮度
+
             // 如果这个 id 已经有一个颜色，就返回这个颜色
             if (idToColorMap[id]) {
                 return idToColorMap[id];
             }
 
-            // 否则，生成一个新的随机颜色
-            const color = `hsl(${Math.random() * 360}, 100%, 50%)`; // 生成一个 HSL 颜色
+            // 计算当前 id 在总共 8 个 id 中的位置
+            const position = parseInt(id) / 8;
+
+            // 计算当前 id 对应的色调
+            const hue = startHue + (position * (endHue - startHue));
+
+            // 生成 HSL 颜色
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+            // 将颜色与 id 关联起来
             idToColorMap[id] = color;
+
+            // 返回颜色
             return color;
         }
+
+
 
         function clicked(event, d) {
             // 这里定义点击节点时的行为
@@ -881,6 +892,21 @@
             // 例如：在控制台打印节点的信息
             console.log(`caption: ${nodeWithId223.caption}`+`\nlabel: ${nodeWithId223.label}`);
             console.log();
+        }
+        function hover_node(event, d) {
+            // 这里定义点击节点时的行为
+            const nodeWithId223 = nodes.find(node => node.id === d.id);
+            const true_label_index=get_truelabel_index(nodes.find(node => node.id === d.id).TrueLabel)
+            // const captionOfNode223 =  : undefined;
+
+            const title=dict_nodes["Case_theme"+"_"+true_label_index]
+            const description=dict_nodes["Description"+"_"+true_label_index]
+            const content="<span class='normal bold'>Index: </span>"+true_label_index+"\n\n<span class='normal bold'>Title: </span>"+title+"\n\n<span class='normal bold'>Description: </span>"+description
+            document.getElementById('my-span').innerHTML=content
+            //
+            // 例如：在控制台打印节点的信息
+            // console.log(`caption: ${nodeWithId223.caption}`+`\nlabel: ${nodeWithId223.label}`);
+            // console.log();
         }
 
         // 节点拖动函数
@@ -918,8 +944,9 @@
                 .attr("transform", d => `translate(${d.x},${d.y})`);
         });
     }
-    function update_row(nodes){
+    function update_row(nodes){//更细列表函数
         const tableBody = document.querySelector("#dataTable tbody");
+        dict_nodes={}
         tableBody.innerHTML = "";
         nodes.forEach(node => {
             // console.log(node)
@@ -932,11 +959,14 @@
 
             const captionCell = document.createElement('td');
             captionCell.textContent = node.caption;
+            dict_nodes[node.TrueLabel]= node.caption
+            if (node.caption.toString().replace(/ /g,'_')!==node.TrueLabel.toString().split("_").slice(0, -1).join("_")){//不显示boolean数值
+                row.appendChild(labelCell);
+                row.appendChild(captionCell);
+                tableBody.appendChild(row);
+            }
 
 
-            row.appendChild(labelCell);
-            row.appendChild(captionCell);
-            tableBody.appendChild(row);
             // const sprite = new THREE.TextSprite({
             //     fontSize:5, // 适当调整
             //     color: 'white',
@@ -950,7 +980,7 @@
     }
     let all_lines_button = document.getElementById("all_lines");
 
-    // 添加点击事件处理程序
+
     all_lines_button.addEventListener("click", function() {
         // iframe.style.display="block"
 
@@ -958,20 +988,10 @@
         src_="{{ url_for('iframe_page') }}" + "?param1=" + encodeURIComponent("multi") + "&param2=" + encodeURIComponent("") + "&param3=" + encodeURIComponent("big");
         // window.location.href =src_
         window.open(src_, '_blank');
-// alert("按钮被点击了！");
 
     });
 
-    // 添加鼠标悬停事件处理程序''
 
-    button.addEventListener("mouseover", function() {
-
-
-    });
-    button.addEventListener("mouseout", function() {
-        console.log("mouseout");
-        iframe.style.display="none"
-    });
     function three_d(nodes, links){
 
         console.log(links.length+" links loaded in "+(new Date()-start)+" ms.")
@@ -1012,7 +1032,7 @@
                         //iframe.style.backgroundColor = 'transparent';
                         //iframe.src="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"small"
                         //src_="http://localhost:63342/3dgraph/leida2.html?param1="+node.label+"&param2="+node.caption+"&param3="+"big"
-                        fetch('http://127.0.0.1:5001/post_multi', {
+                        fetch('http://127.0.0.1:5002/post_multi', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

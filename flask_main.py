@@ -1,3 +1,5 @@
+import os
+
 import requests
 from flask import Flask, request,render_template,jsonify,session
 from lxml import html
@@ -8,6 +10,7 @@ import csv_database_update
 from flask_session import Session
 import text_process
 import docx
+import pandas as pd
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统中
 Session(app)
@@ -35,6 +38,19 @@ def post_single():
         else:
             raise Exception ("no data found")
     return jsonify({'receivedData': data})
+@app.route('/post_level')
+def post_level():
+
+    xlsx_file_path = os.path.join(app.static_folder, 'route.xlsx')
+    if not os.path.isfile(xlsx_file_path):
+        return 'xlsx_file_path not exist'
+    df = pd.read_excel(xlsx_file_path, header=None)  # Load without headers to get all data as is
+    # Since we're only interested in the first two rows, we'll extract those
+    keys = df.iloc[0]  # First row for keys
+    values = df.iloc[1]  # Second row for values
+    data_dict = dict(zip(keys, values))
+    return jsonify({'reply': data_dict})
+
 @app.route('/post_multi', methods=['POST'])
 def post_multi():
 
@@ -140,7 +156,7 @@ def process_text():
     data = request.json
 
     allText = data.get('text')
-    form_dict={"Case theme":'','Users':'','Provider':'','Influencer':'','Description':'','Time':'','Place':''}
+    form_dict={"Case theme":'','Users':'','Provider':'','Influencer':'','Description':'','Time':'','Place':'','URL':''}
     if allText:
 
         form_dict["Case theme"]=text_process.summary_extract(allText)

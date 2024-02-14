@@ -219,12 +219,45 @@
             }
             return sum_numericData;
         }
+        function findCommonKeys(dictList) {
+            const commonKeys = {};
+
+            // 获取第一个字典
+            const firstDict = dictList[0];
+
+            // 遍历第一个字典的键
+            Object.keys(firstDict).forEach(key => {
+                const value = firstDict[key];
+                let isCommon = true;
+
+                // 检查每个字典的相应键的值是否相同
+                for (let i = 1; i < dictList.length; i++) {
+                    if (dictList[i][key] !== value) {
+                        isCommon = false;
+                        break;
+                    }
+                }
+
+                // 如果所有字典中相应键的值都相同，则将该键添加到结果中
+                if (isCommon) {
+                    commonKeys[key] = value;
+                }
+            });
+            let resultString = '';
+            let commonKeys_len;
+            for (const key in commonKeys) {
+                resultString += `${key}: ${commonKeys[key]}\n`;
+            }
+            commonKeys_len=Object.keys(commonKeys).length
+            return {resultString, commonKeys_len};
+        }
+
 
         async function fetchData() {
             if (paramMap.param1==="single"){
                 try {
 
-                    await fetch('http://127.0.0.1:5001/post_single', {
+                    await fetch('http://127.0.0.1:5002/post_single', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -245,7 +278,7 @@
             }else {
                 try {
 
-                    await fetch('http://127.0.0.1:5001/get_case_list', {
+                    await fetch('http://127.0.0.1:5002/get_case_list', {
                         //     method: 'POST',
                         //     headers: {
                         //         'Content-Type': 'application/json',
@@ -278,15 +311,24 @@
             // return JSON.stringify(data["receivedData"])
             let selectedRows_num;
             let selectedRows_str;
+            let result;
+            let commonKeys,len_commonKeys;
             selectedRows_str=data["receivedData"]
             selectedRows_num=filterNumericKeys(selectedRows_str)
+            result=findCommonKeys(selectedRows_str)
+            commonKeys=result.resultString
+            len_commonKeys=result.commonKeys_len
+
+            console.log(len_commonKeys,"commonKeys")
             global_index=extractIndexes(selectedRows_num)
             // console.log(selectedRows_str)
             // console.log(selectedRows_num)
-            document.getElementById("coordinates").innerText =
+
+            document.getElementById("coordinates").innerHTML =
                 "Selected count: " + selectedRows_num.length.toString() + "\n\n" +
-                "        Cases Index: " + global_index.toString() + "        " +
-                JSON.stringify(selectedRows_num);
+                "Cases Index: " + global_index.toString() + "\n\n"+"Common keys: " +len_commonKeys.toString()+"\n"+
+            (commonKeys)+"\n\nDetailed info: "+
+                JSON.stringify(selectedRows_num)
 
             if (paramMap.param3==="big") {
                 d3.select("svg").style("font", "15px sans-serif");
