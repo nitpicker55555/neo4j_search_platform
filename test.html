@@ -1,118 +1,1058 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <title>Neovis.js Simple Example</title>
-  <style type="text/css">
-    html, body {
-      font: 16pt arial;
-    }
-
-    #viz {
-      width: 900px;
-      height: 1900px;
-      border: 1px solid lightgray;
-      font: 22pt arial;
-    }
+  <title>自动生成节点位置示例</title>
+  <style>
+    .link { stroke: #999; stroke-opacity: 0.6; }
+    /*.node { stroke: #fff; stroke-width: 1.5px; }*/
   </style>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
 
-  <script src="https://unpkg.com/neovis.js@2.0.2"></script>
-
-  <script type="text/javascript">
-
-    let neoViz;
-
-    function draw() {
-      let allLabels =['Data','Place']
-      const config = {
-        containerId: "viz",
-        neo4j: {
-          serverUrl: "bolt://localhost:7687",
-          serverUser: "neo4j",
-          serverPassword: "12345678",
-        },
-        labels: {
-
-        },
-        // labels: {
-        //   Character: {
-        //     // label: "name",
-        //     // value: "pagerank",
-        //     group: "name",
-        //     [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
-        //       function: {
-        //         title: (node) => {
-        //           // 返回带有label和name的HTML字符串
-        //           // console.log(node)
-        //           // console.log(node.labels[0])
-        //           return `<div>
-        //               <strong>Label:</strong> ${node.labels[0]}<br>
-        //               <strong>Name:</strong> ${node.properties.name}
-        //             </div>`;
-        //         }
-        //       }
-        //     }
-        //   }
-        // },
-
-        // relationships: {
-        //   INTERACTS: {
-        //     value: "weight"
-        //   }
-        // },
-        // "MATCH (n)\n" +
-        // "WHERE (n.TrueLabel CONTAINS \"14\") AND NOT n.redundancy\n" +
-        //         "RETURN n"
-        initialCypher:"MATCH (n)-[r]->(m)\n" +
-                "WHERE (n.TrueLabel CONTAINS \"148\") AND NOT n.redundancy\n" +
-                "RETURN r,n"
-      };
-      allLabels.forEach(label => {
-        config.labels[label] = {
-          label: "name",
-          group: "name",
-          [NeoVis.NEOVIS_ADVANCED_CONFIG]: {
-            function: {
-              title: (node) => {
-                return `<div>
-                <strong>Label:</strong> ${node.labels[0]}<br>
-                <strong>Name:</strong> ${node.properties.name}
-              </div>`;
-              }
-            }
-          }
-        };
-      });
-      neoViz = new NeoVis.default(config);
-      neoViz.render();
-      // 等待图表渲染完成后添加事件监听器
-      neoViz.registerOnEvent("completed", () => {
-        // 当节点被点击时触发
-        neoViz.network.on("click", function (params) {
-          if (params.nodes.length > 0) {
-            const nodeId = params.nodes[0]
-            const nodeData = neoViz.nodes.get(nodeId);
-            // console.log("Clicked node ID:", nodeData);
-            console.log("Clicked node ID:", nodeData.raw.labels[0]);//label
-            console.log("Clicked node ID:", nodeData.label);//caption
-            // console.log("Clicked node ID:", nodeData.properties.name);
-            // 在这里添加您的点击处理逻辑
-          }
-        });
-
-        // 当鼠标悬停在节点上时触发
-        neoViz.network.on("hoverNode", function (params) {
-          console.log("Hovered over node ID:", params.node);
-          // 在这里添加您的悬停处理逻辑
-        });
-      });
-    }
-    // 当节点被点击时触发
-
-
-  </script>
 </head>
-<body onload="draw()">
-<div id="viz"></div>
+<body>
+<svg id='svg-span' width="300" height="600"></svg>
+<script>
 
+  const idToColorMap = {};
+  // 原始数据
+  const dict_level={
+    "AI Designers": 5,
+    "AI Products": 5,
+    "AI ethics governance guidelines": 3,
+    "AI ethics issue resolution measures": 2,
+    "AI ethics issues": 1,
+    "AI's service & work sessions": 4,
+    "AI-induced risks": 2,
+    "Attitude": 4,
+    "Behavior prediction": 5,
+    "Behavior tracking": 5,
+    "Behaviour nudging": 5,
+    "Case theme": 4,
+    "Cases of AI ethics issues": 2,
+    "Data access": 5,
+    "Data acquisition": 5,
+    "Data modeling": 5,
+    "Description": 4,
+    "Design session of Al": 4,
+    "Economic loss": 3,
+    "Emotional or psychological injury": 3,
+    "Event attributes": 3,
+    "Fields": 4,
+    "Human-like ethics issues": 7,
+    "Index": 4,
+    "Influencer": 4,
+    "Infringements on human rights": 3,
+    "Justice and fairness": 4,
+    "Life cycle of Al technology or product": 3,
+    "Loss of opportunity": 3,
+    "Negative design that produces negative results that meet expectations": 7,
+    "Non-human-like ethics issues": 7,
+    "Non-maleficence": 4,
+    "Not enough beyond human to cause ethics problems": 8,
+    "Not human-like enough to cause ethics problems": 8,
+    "Opinion": 4,
+    "Overly human-like and leading to ethics problems": 8,
+    "Physical injury": 3,
+    "Place": 4,
+    "Positional attribute": 3,
+    "Positional attributes in early stages": 4,
+    "Positional attributes in end stages": 4,
+    "Positional attributes in mid stages": 4,
+    "Positions in business conduct": 4,
+    "Positive design that produces negative results that do not meet expectations": 7,
+    "Privacy": 4,
+    "Provider": 4,
+    "Reason": 4,
+    "Relational attributes": 3,
+    "Response": 4,
+    "Responsibility": 4,
+    "Results": 4,
+    "Social detriment": 3,
+    "Surprising learning result": 5,
+    "The cause of the problem": 4,
+    "Time": 4,
+    "Time attributes of AI ethical issues": 2,
+    "Transparency": 4,
+    "Trust": 4,
+    "URL": 4,
+    "Users": 5,
+    "Wrong user group": 5,
+    "Wrong user task": 5,
+    "degree of influence": 4,
+    "ethics Issues Caused by Al Designers": 6,
+    "ethics issues caused by Al products": 6,
+    "ethics issues caused by Al users": 6,
+    "ethics issues caused by the wrong user group": 7,
+    "ethics issues due to wrong user tasks": 7
+  }
+  var nodes = [
+    {
+      "caption": "​Is Starbucks shortchanging its baristas?",
+      "id": 189,
+      "label": "AI ethics issues",
+      "TrueLabel": "AI_ethics_issues_2",
+      "x": -2.4492935982947065e-15,
+      "y": 40
+    },
+    {
+      "caption": "Time attributes of AI ethical issues",
+      "id": 190,
+      "label": "Time attributes of AI ethical issues",
+      "TrueLabel": "Time_attributes_of_AI_ethical_issues_2",
+      "x": -5.11508646738024,
+      "y": 39.671600552929846
+    },
+    {
+      "caption": "Life cycle of Al technology or product",
+      "id": 191,
+      "label": "Life cycle of Al technology or product",
+      "TrueLabel": "Life_cycle_of_Al_technology_or_product_2",
+      "x": -10.146183356380291,
+      "y": 38.69179452156118
+    },
+    {
+      "caption": "Design session of Al",
+      "id": 192,
+      "label": "Design session of Al",
+      "TrueLabel": "Design_session_of_Al_2",
+      "x": -15.010680195174968,
+      "y": 37.07667029384087
+    },
+    {
+      "caption": "AI Designers",
+      "id": 193,
+      "label": "AI Designers",
+      "TrueLabel": "AI_Designers_2",
+      "x": -19.628702080157517,
+      "y": 34.85274816493557
+    },
+    {
+      "caption": "ethics Issues Caused by Al Designers",
+      "id": 194,
+      "label": "ethics Issues Caused by Al Designers",
+      "TrueLabel": "ethics_Issues_Caused_by_Al_Designers_2",
+      "x": -23.924421219648636,
+      "y": 32.05654487471827
+    },
+    {
+      "caption": "Positive design that produces negative results that do not meet expectations",
+      "id": 195,
+      "label": "Positive design that produces negative results that do not meet expectations",
+      "TrueLabel": "Positive_design_that_produces_negative_results_that_do_not_meet_expectations_2",
+      "x": -27.827302024139456,
+      "y": 28.733974003909104
+    },
+    {
+      "caption": "AI Products",
+      "id": 196,
+      "label": "AI Products",
+      "TrueLabel": "AI_Products_2",
+      "x": -31.273259298721193,
+      "y": 24.93959207434934
+    },
+    {
+      "caption": "ethics issues caused by Al products",
+      "id": 197,
+      "label": "ethics issues caused by Al products",
+      "TrueLabel": "ethics_issues_caused_by_Al_products_2",
+      "x": -34.20571052021385,
+      "y": 20.735702732421004
+    },
+    {
+      "caption": "Non-human-like ethics issues",
+      "id": 198,
+      "label": "Non-human-like ethics issues",
+      "TrueLabel": "Non-human-like_ethics_issues_2",
+      "x": -36.576504920632495,
+      "y": 16.191333724895756
+    },
+    {
+      "caption": "Not enough beyond human to cause ethics problems",
+      "id": 199,
+      "label": "Not enough beyond human to cause ethics problems",
+      "TrueLabel": "Not_enough_beyond_human_to_cause_ethics_problems_2",
+      "x": -38.34671412146642,
+      "y": 11.381103465241305
+    },
+    {
+      "caption": "AI's service & work sessions",
+      "id": 200,
+      "label": "AI's service & work sessions",
+      "TrueLabel": "AI's_service_&_work_sessions_2",
+      "x": -39.487271336578004,
+      "y": 6.383995801335169
+    },
+    {
+      "caption": "Starbucks",
+      "id": 201,
+      "label": "Users",
+      "TrueLabel": "Users_2",
+      "x": -39.979448648027514,
+      "y": 1.2820631028662108
+    },
+    {
+      "caption": "ethics issues caused by Al users",
+      "id": 202,
+      "label": "ethics issues caused by Al users",
+      "TrueLabel": "ethics_issues_caused_by_Al_users_2",
+      "x": -39.81516451796793,
+      "y": -3.8409210363072646
+    },
+    {
+      "caption": "ethics issues due to wrong user tasks",
+      "id": 203,
+      "label": "ethics issues due to wrong user tasks",
+      "TrueLabel": "ethics_issues_due_to_wrong_user_tasks_2",
+      "x": -38.99711648727295,
+      "y": -8.900837358252575
+    },
+    {
+      "caption": "AI ethics issue resolution measures",
+      "id": 204,
+      "label": "AI ethics issue resolution measures",
+      "TrueLabel": "AI_ethics_issue_resolution_measures_2",
+      "x": -37.53873688199042,
+      "y": -13.814602176852302
+    },
+    {
+      "caption": "AI ethics governance guidelines",
+      "id": 205,
+      "label": "AI ethics governance guidelines",
+      "TrueLabel": "AI_ethics_governance_guidelines_2",
+      "x": -35.46397225492,
+      "y": -18.501531609633407
+    },
+    {
+      "caption": "Transparency",
+      "id": 206,
+      "label": "Transparency",
+      "TrueLabel": "Transparency_2",
+      "x": -32.80689018387824,
+      "y": -22.88466640488678
+    },
+    {
+      "caption": "Justice and fairness",
+      "id": 207,
+      "label": "Justice and fairness",
+      "TrueLabel": "Justice_and_fairness_2",
+      "x": -29.611119883012627,
+      "y": -26.892035610452663
+    },
+    {
+      "caption": "degree of influence",
+      "id": 208,
+      "label": "degree of influence",
+      "TrueLabel": "degree_of_influence_2",
+      "x": -25.929135812311547,
+      "y": -30.45783833476537
+    },
+    {
+      "caption": "Privacy",
+      "id": 209,
+      "label": "Privacy",
+      "TrueLabel": "Privacy_2",
+      "x": -21.82139604842196,
+      "y": -33.523524195673616
+    },
+    {
+      "caption": "AI-induced risks",
+      "id": 210,
+      "label": "AI-induced risks",
+      "TrueLabel": "AI-induced_risks_2",
+      "x": -17.355349564702326,
+      "y": -36.03875471609677
+    },
+    {
+      "caption": "Infringements on human rights",
+      "id": 211,
+      "label": "Infringements on human rights",
+      "TrueLabel": "Infringements_on_human_rights_2",
+      "x": -12.604328720944832,
+      "y": -37.96222988042675
+    },
+    {
+      "caption": "Emotional or psychological injury",
+      "id": 212,
+      "label": "Emotional or psychological injury",
+      "TrueLabel": "Emotional_or_psychological_injury_2",
+      "x": -7.646345148054899,
+      "y": -39.26236627964261
+    },
+    {
+      "caption": "Loss of opportunity",
+      "id": 213,
+      "label": "Loss of opportunity",
+      "TrueLabel": "Loss_of_opportunity_2",
+      "x": -2.562808799228527,
+      "y": -39.91781571001346
+    },
+    {
+      "caption": "Cases of AI ethics issues",
+      "id": 214,
+      "label": "Cases of AI ethics issues",
+      "TrueLabel": "Cases_of_AI_ethics_issues_2",
+      "x": 2.5628087992285042,
+      "y": -39.91781571001346
+    },
+    {
+      "caption": "Event attributes",
+      "id": 215,
+      "label": "Event attributes",
+      "TrueLabel": "Event_attributes_2",
+      "x": 7.646345148054877,
+      "y": -39.26236627964262
+    },
+    {
+      "caption": {
+        "low": 2,
+        "high": 0
+      },
+      "id": 216,
+      "label": "Index",
+      "TrueLabel": "Index_2",
+      "x": 12.60432872094481,
+      "y": -37.962229880426754
+    },
+    {
+      "caption": "Global",
+      "id": 217,
+      "label": "Place",
+      "TrueLabel": "Place_2",
+      "x": 17.355349564702323,
+      "y": -36.03875471609677
+    },
+    {
+      "caption": {
+        "low": 2015,
+        "high": 0
+      },
+      "id": 218,
+      "label": "Time",
+      "TrueLabel": "Time_2",
+      "x": 21.821396048421946,
+      "y": -33.52352419567363
+    },
+    {
+      "caption": "Relational attributes",
+      "id": 219,
+      "label": "Relational attributes",
+      "TrueLabel": "Relational_attributes_2",
+      "x": 25.92913581231153,
+      "y": -30.45783833476538
+    },
+    {
+      "caption": "​Is Starbucks shortchanging its baristas?",
+      "id": 220,
+      "label": "Case theme",
+      "TrueLabel": "Case_theme_2",
+      "x": 29.611119883012616,
+      "y": -26.89203561045268
+    },
+    {
+      "caption": "Staff",
+      "id": 221,
+      "label": "Influencer",
+      "TrueLabel": "Influencer_2",
+      "x": 32.806890183878224,
+      "y": -22.884666404886794
+    },
+    {
+      "caption": "Create erratic schedules for workers, jobs leaves bitter taste",
+      "id": 222,
+      "label": "Results",
+      "TrueLabel": "Results_2",
+      "x": 35.46397225492,
+      "y": -18.50153160963341
+    },
+    {
+      "caption": " The issue of data ownership. How to define the responsible subject of data ethics. User privacy is violated. ",
+      "id": 223,
+      "label": "Reason",
+      "TrueLabel": "Reason_2",
+      "x": 37.53873688199041,
+      "y": -13.814602176852324
+    },
+    {
+      "caption": "1. Starbucks' attitude is that there's always someone else who can do the job \n2.Employees interviewed for this article said one result of Starbucks' cost-containment push is that stores are frequently understaffed, hurting customer service and forcing managers to scramble to find staff. That problem is common across the big-box stores that dominate the retail sector, experts said.\n3.\"On the one hand, retailers overhire, but they're also understaffed, so everybody's running around and then there aren't enough people on the floor,\" said Susan Lambert, a professor at the University of Chicago and an expert in work-life issues. \"Companies are effectively loading all the risk onto workers so that they're not the ones incurring the risks inherent in business.\"",
+      "id": 224,
+      "label": "Opinion",
+      "TrueLabel": "Opinion_2",
+      "x": 38.99711648727295,
+      "y": -8.90083735825258
+    },
+    {
+      "caption": "Starbucks:  the company said it would end the practice of \"clopening,\" when an employee responsible for closing a store late at night is also assigned to open it early in the morning.\n\n",
+      "id": 225,
+      "label": "Response",
+      "TrueLabel": "Response_2",
+      "x": 39.81516451796792,
+      "y": -3.8409210363072956
+    },
+    {
+      "caption": "https://www.cbsnews.com/news/for-some-starbucks-workers-job-leaves-bitter-taste/",
+      "id": 226,
+      "label": "URL",
+      "TrueLabel": "URL_2",
+      "x": 39.979448648027514,
+      "y": 1.2820631028661968
+    },
+    {
+      "caption": "AI supervision",
+      "id": 227,
+      "label": "Fields",
+      "TrueLabel": "Fields_2",
+      "x": 39.48727133657801,
+      "y": 6.383995801335138
+    },
+    {
+      "caption": "Kronos",
+      "id": 228,
+      "label": "Provider",
+      "TrueLabel": "Provider_2",
+      "x": 38.34671412146643,
+      "y": 11.381103465241281
+    },
+    {
+      "caption": "The cause of the problem",
+      "id": 229,
+      "label": "The cause of the problem",
+      "TrueLabel": "The_cause_of_the_problem_2",
+      "x": 36.576504920632516,
+      "y": 16.19133372489572
+    },
+    {
+      "caption": "Positions in business conduct",
+      "id": 230,
+      "label": "Positions in business conduct",
+      "TrueLabel": "Positions_in_business_conduct_2",
+      "x": 34.205710520213856,
+      "y": 20.735702732420982
+    },
+    {
+      "caption": "Negative",
+      "id": 231,
+      "label": "Attitude",
+      "TrueLabel": "Attitude_2",
+      "x": 31.273259298721197,
+      "y": 24.939592074349335
+    },
+    {
+      "caption": "The staff scheduling tool used by Starbucks has led to staff working hours volatile and erratic schedules. Some store managers use a scheduling software, Kronos, to optimize scheduling and cut labor costs, however Starbucks refuses to accept or deny using Kronos",
+      "id": 232,
+      "label": "Description",
+      "TrueLabel": "Description_2",
+      "x": 27.827302024139474,
+      "y": 28.733974003909086
+    },
+    {
+      "caption": "Positional attribute",
+      "id": 233,
+      "label": "Positional attribute",
+      "TrueLabel": "Positional_attribute_2",
+      "x": 23.92442121964865,
+      "y": 32.05654487471826
+    },
+    {
+      "caption": "Positional attributes in early stages",
+      "id": 234,
+      "label": "Positional attributes in early stages",
+      "TrueLabel": "Positional_attributes_in_early_stages_2",
+      "x": 19.62870208015754,
+      "y": 34.85274816493556
+    },
+    {
+      "caption": "Data acquisition",
+      "id": 235,
+      "label": "Data acquisition",
+      "TrueLabel": "Data_acquisition_2",
+      "x": 15.01068019517498,
+      "y": 37.07667029384086
+    },
+    {
+      "caption": "Data access",
+      "id": 236,
+      "label": "Data access",
+      "TrueLabel": "Data_access_2",
+      "x": 10.146183356380332,
+      "y": 38.69179452156117
+    },
+    {
+      "caption": "Data modeling",
+      "id": 237,
+      "label": "Data modeling",
+      "TrueLabel": "Data_modeling_2",
+      "x": 5.115086467380263,
+      "y": 39.671600552929846
+    }
+  ]
+
+  var links = [
+    {
+      "source": 189,
+      "target": 190
+    },
+    {
+      "source": 190,
+      "target": 189
+    },
+    {
+      "source": 190,
+      "target": 191
+    },
+    {
+      "source": 191,
+      "target": 190
+    },
+    {
+      "source": 191,
+      "target": 192
+    },
+    {
+      "source": 192,
+      "target": 191
+    },
+    {
+      "source": 192,
+      "target": 193
+    },
+    {
+      "source": 193,
+      "target": 192
+    },
+    {
+      "source": 193,
+      "target": 194
+    },
+    {
+      "source": 194,
+      "target": 193
+    },
+    {
+      "source": 194,
+      "target": 195
+    },
+    {
+      "source": 195,
+      "target": 194
+    },
+    {
+      "source": 192,
+      "target": 196
+    },
+    {
+      "source": 196,
+      "target": 192
+    },
+    {
+      "source": 196,
+      "target": 197
+    },
+    {
+      "source": 197,
+      "target": 196
+    },
+    {
+      "source": 197,
+      "target": 198
+    },
+    {
+      "source": 198,
+      "target": 197
+    },
+    {
+      "source": 198,
+      "target": 199
+    },
+    {
+      "source": 199,
+      "target": 198
+    },
+    {
+      "source": 191,
+      "target": 200
+    },
+    {
+      "source": 200,
+      "target": 191
+    },
+    {
+      "source": 200,
+      "target": 201
+    },
+    {
+      "source": 201,
+      "target": 200
+    },
+    {
+      "source": 201,
+      "target": 202
+    },
+    {
+      "source": 202,
+      "target": 201
+    },
+    {
+      "source": 202,
+      "target": 203
+    },
+    {
+      "source": 203,
+      "target": 202
+    },
+    {
+      "source": 189,
+      "target": 204
+    },
+    {
+      "source": 204,
+      "target": 189
+    },
+    {
+      "source": 204,
+      "target": 205
+    },
+    {
+      "source": 205,
+      "target": 204
+    },
+    {
+      "source": 205,
+      "target": 206
+    },
+    {
+      "source": 206,
+      "target": 205
+    },
+    {
+      "source": 205,
+      "target": 207
+    },
+    {
+      "source": 207,
+      "target": 205
+    },
+    {
+      "source": 205,
+      "target": 208
+    },
+    {
+      "source": 208,
+      "target": 205
+    },
+    {
+      "source": 205,
+      "target": 209
+    },
+    {
+      "source": 209,
+      "target": 205
+    },
+    {
+      "source": 189,
+      "target": 210
+    },
+    {
+      "source": 210,
+      "target": 189
+    },
+    {
+      "source": 210,
+      "target": 211
+    },
+    {
+      "source": 211,
+      "target": 210
+    },
+    {
+      "source": 210,
+      "target": 212
+    },
+    {
+      "source": 212,
+      "target": 210
+    },
+    {
+      "source": 210,
+      "target": 213
+    },
+    {
+      "source": 213,
+      "target": 210
+    },
+    {
+      "source": 189,
+      "target": 214
+    },
+    {
+      "source": 214,
+      "target": 189
+    },
+    {
+      "source": 214,
+      "target": 215
+    },
+    {
+      "source": 215,
+      "target": 214
+    },
+    {
+      "source": 215,
+      "target": 216
+    },
+    {
+      "source": 216,
+      "target": 215
+    },
+    {
+      "source": 215,
+      "target": 217
+    },
+    {
+      "source": 217,
+      "target": 215
+    },
+    {
+      "source": 215,
+      "target": 218
+    },
+    {
+      "source": 218,
+      "target": 215
+    },
+    {
+      "source": 214,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 214
+    },
+    {
+      "source": 219,
+      "target": 220
+    },
+    {
+      "source": 220,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 221
+    },
+    {
+      "source": 221,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 222
+    },
+    {
+      "source": 222,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 223
+    },
+    {
+      "source": 223,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 224
+    },
+    {
+      "source": 224,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 225
+    },
+    {
+      "source": 225,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 226
+    },
+    {
+      "source": 226,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 227
+    },
+    {
+      "source": 227,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 228
+    },
+    {
+      "source": 228,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 229
+    },
+    {
+      "source": 229,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 230
+    },
+    {
+      "source": 230,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 231
+    },
+    {
+      "source": 231,
+      "target": 219
+    },
+    {
+      "source": 219,
+      "target": 232
+    },
+    {
+      "source": 232,
+      "target": 219
+    },
+    {
+      "source": 214,
+      "target": 233
+    },
+    {
+      "source": 233,
+      "target": 214
+    },
+    {
+      "source": 233,
+      "target": 234
+    },
+    {
+      "source": 234,
+      "target": 233
+    },
+    {
+      "source": 234,
+      "target": 235
+    },
+    {
+      "source": 235,
+      "target": 234
+    },
+    {
+      "source": 234,
+      "target": 236
+    },
+    {
+      "source": 236,
+      "target": 234
+    },
+    {
+      "source": 234,
+      "target": 237
+    },
+    {
+      "source": 237,
+      "target": 234
+    },
+    {
+      "source": 200,
+      "target": 196
+    },
+    {
+      "source": 196,
+      "target": 200
+    }
+  ]
+
+
+  var svg = d3.select("#svg-span"),
+          width = +svg.attr("width"),
+          height = +svg.attr("height");
+  nodes.forEach(node => {
+    node.visible = true;
+  });
+  links.forEach(link => {
+    link.visible = true;
+  });
+
+  function getColorById(id) {
+    // 定义颜色的起始和结束值
+    const startHue = 0; // 起始色调
+    const endHue = 300; // 结束色调
+    const saturation = 100; // 饱和度
+    const lightness = 60; // 亮度
+
+    // 如果这个 id 已经有一个颜色，就返回这个颜色
+    if (idToColorMap[id]) {
+      return idToColorMap[id];
+    }
+
+    // 计算当前 id 在总共 8 个 id 中的位置
+    const position = parseInt(id) / 8;
+
+    // 计算当前 id 对应的色调
+    const hue = startHue + (position * (endHue - startHue));
+
+    // 生成 HSL 颜色
+    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+    // 将颜色与 id 关联起来
+    idToColorMap[id] = color;
+
+    // 返回颜色
+    return color;}
+  var simulation = d3.forceSimulation(nodes)
+          .force("link", d3.forceLink(links).id(d => d.id))
+          .force("charge", d3.forceManyBody())
+          .force("center", d3.forceCenter(width / 2, height / 2));
+
+  var link = svg.append("g")
+          .attr("class", "links")
+          .selectAll("line")
+          .data(links)
+          .enter().append("line")
+          .attr("class", "link");
+
+  var node = svg.append("g")
+          .attr("class", "nodes")
+          .selectAll("circle")
+          .data(nodes)
+          .enter().append("circle")
+          .attr("r", function(d) {
+            // console.log(nodes.find(node => node.id === d.id).label)
+            return 1/(dict_level[nodes.find(node => node.id === d.id).label])*25;
+          })
+          .attr("class", "node")
+          .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点根据level设置颜色
+          .call(d3.drag()
+                  .on("start", dragstarted)
+                  .on("drag", dragged)
+                  .on("end", dragended));
+  function update() {
+    // Update links
+    link.style("opacity", d => d.visible ? 1 : 0);
+
+    // Update nodes
+    node.style("opacity", d => d.visible ? 1 : 0);
+  }
+
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+  simulation.on("tick", () => {
+    link.attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+    node.attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+    var minX = d3.min(nodes, d => d.x),
+            minY = d3.min(nodes, d => d.y),
+            maxX = d3.max(nodes, d => d.x),
+            maxY = d3.max(nodes, d => d.y);
+    // console.log(minX)
+    // 计算视图框大小和位置
+    var viewBoxX = minX,
+            viewBoxY = minY,
+            viewBoxWidth = maxX - minX,
+            viewBoxHeight = maxY - minY;
+
+    // 为了确保内容完全可见，可以留出一点边距
+    var margin = 10;
+    svg.attr("viewBox", `${viewBoxX - margin} ${viewBoxY - margin} ${viewBoxWidth + 2 * margin} ${viewBoxHeight + 2 * margin}`);
+
+  }
+
+  );
+
+  node.on("click", function(event, d) {
+
+    const newVisibility = false;
+    let child_list=[]
+    const child_id_list=[]
+    link.visible = newVisibility;
+    // d.visible = newVisibility;
+    child_list=find_child(d,[])
+    console.log(child_list,"child_list")
+    child_list.forEach(child=>{
+      child.visible=newVisibility
+      child_id_list.push(child.id)
+    })
+    links.forEach(link => {
+      if (child_id_list.includes(link.source.id)  || child_id_list.includes(link.target.id) ) {
+        link.visible = newVisibility;
+      }
+    });
+
+    update();
+
+  });
+  function find_child(d,child_list){
+    const target_list=new Set()
+    const new_child_list=[]
+
+    links.forEach(link => {
+      if (link.source.id === d.id || link.target.id === d.id) {
+
+
+        target_list.add(link.target.id)
+        target_list.add(link.source.id)
+      }
+    });
+    nodes.forEach(node => {
+      if (target_list.has(node.id) && node.id!==d.id && dict_level[node.label]>dict_level[d.label]) {
+        new_child_list.push(node)
+        child_list.push(node)
+      }
+    }
+    )
+    console.log(new_child_list)
+    new_child_list.forEach(child_node=>{
+      find_child(child_node,child_list)
+    })
+  return child_list
+  }
+
+
+  // 在力布局稳定后停止模拟
+  // simulation.on("end", () => {
+  //   这里可以加入任何在布局完成后想执行的代码
+    // console.log("力布局已完成，图谱现在是静态的。");
+  // });
+
+
+
+</script>
 </body>
 </html>
