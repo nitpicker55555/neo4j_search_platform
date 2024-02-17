@@ -7,13 +7,14 @@
     /*.node { stroke: #fff; stroke-width: 1.5px; }*/
   </style>
   <script src="https://d3js.org/d3.v6.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 </head>
 <body>
 <svg id='svg-span' width="300" height="600"></svg>
+<svg id='svg-span2' width="300" height="600"></svg>
 <script>
 
-  const idToColorMap = {};
+
   // 原始数据
   const dict_level={
     "AI Designers": 5,
@@ -85,7 +86,7 @@
     "ethics issues caused by the wrong user group": 7,
     "ethics issues due to wrong user tasks": 7
   }
-  var nodes = [
+  const nodes = [
     {
       "caption": "​Is Starbucks shortchanging its baristas?",
       "id": 189,
@@ -486,7 +487,7 @@
     }
   ]
 
-  var links = [
+  const links = [
     {
       "source": 189,
       "target": 190
@@ -880,241 +881,294 @@
       "target": 200
     }
   ]
+  function deepClone(obj, hash = new WeakMap()) {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof Date) return new Date(obj);
+    if (obj instanceof RegExp) return new RegExp(obj);
+    if (hash.has(obj)) return hash.get(obj);
 
+    const result = Array.isArray(obj) ? [] : {};
+    hash.set(obj, result);
 
-  var svg = d3.select("#svg-span"),
-          width = +svg.attr("width"),
-          height = +svg.attr("height");
-  nodes.forEach(node => {
-    node.visible = true;
-  });
-  links.forEach(link => {
-    link.visible = true;
-  });
-
-  function getColorById(id) {
-    // 定义颜色的起始和结束值
-    const startHue = 0; // 起始色调
-    const endHue = 300; // 结束色调
-    const saturation = 100; // 饱和度
-    const lightness = 60; // 亮度
-
-    // 如果这个 id 已经有一个颜色，就返回这个颜色
-    if (idToColorMap[id]) {
-      return idToColorMap[id];
+    for (const key of Object.keys(obj)) {
+      result[key] = deepClone(obj[key], hash);
     }
-
-    // 计算当前 id 在总共 8 个 id 中的位置
-    const position = parseInt(id) / 8;
-
-    // 计算当前 id 对应的色调
-    const hue = startHue + (position * (endHue - startHue));
-
-    // 生成 HSL 颜色
-    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-    // 将颜色与 id 关联起来
-    idToColorMap[id] = color;
-
-    // 返回颜色
-    return color;}
-  var simulation = d3.forceSimulation(nodes)
-          .force("link", d3.forceLink(links).id(d => d.id))
-          .force("charge", d3.forceManyBody())
-          .force("center", d3.forceCenter(width / 2, height / 2));
-
-  var link = svg.append("g")
-          .attr("class", "links")
-          .selectAll("line")
-          .data(links)
-          .enter().append("line")
-          .attr("class", "link");
-
-  var node = svg.append("g")
-          .attr("class", "nodes")
-          .selectAll("circle")
-          .data(nodes)
-          .enter().append("circle")
-          .attr("r", function(d) {
-            // console.log(nodes.find(node => node.id === d.id).label)
-            return 1/(dict_level[nodes.find(node => node.id === d.id).label])*25;
-          })
-          .attr("class", "node")
-          .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点根据level设置颜色
-          .call(d3.drag()
-                  .on("start", dragstarted)
-                  .on("drag", dragged)
-                  .on("end", dragended));
-  update();
-  function update() {
-    // Update links
-    link.style("display", d => d.visible ? null : "none");
-
-    // Update nodes
-    node.style("display", d => d.visible ? null : "none");
+    return result;
   }
 
-  function dragstarted(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
-  }
 
-  function dragged(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
-  }
-
-  function dragended(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
-  }
-  simulation.on("tick", () => {
-    link.attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-    node.attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-    var minX = d3.min(nodes, d => d.x),
-            minY = d3.min(nodes, d => d.y),
-            maxX = d3.max(nodes, d => d.x),
-            maxY = d3.max(nodes, d => d.y);
-    // console.log(minX)
-    // 计算视图框大小和位置
-    var viewBoxX = minX,
-            viewBoxY = minY,
-            viewBoxWidth = maxX - minX,
-            viewBoxHeight = maxY - minY;
-
-    // 为了确保内容完全可见，可以留出一点边距
-    var margin = 10;
-    svg.attr("viewBox", `${viewBoxX - margin} ${viewBoxY - margin} ${viewBoxWidth + 2 * margin} ${viewBoxHeight + 2 * margin}`);
-
-  }
-
-  );
-
-
-  node.on("click", function(event, d) {
-
-    const newVisibility = judge_expand(d);
-
-    let child_list=[]
-    const child_id_list=[]
-    // d.visible = newVisibility;
-    if (newVisibility===true){
-      child_list=find_child(d,[],'only_neighbor')
-    }else {
-      child_list=find_child(d,[],'total')
-    }
-
-    child_list.forEach(child=>{
-      child.visible=newVisibility
-      child_id_list.push(child.id)
-    })
-
-    links.forEach(link => {
-      if (child_id_list.includes(link.source.id)  || child_id_list.includes(link.target.id) ) {
-        if (newVisibility){
-          if (link.source.visible===link.target.visible){
-            link.visible = newVisibility;
-          }
-        }else {
-          link.visible = newVisibility;
-        }
-
-
-      }
-    });
-
-    update();
-
-  });
-  node.on("dblclick", function(event, d) {
-    const newVisibility = true
-    let child_list=[]
-    const child_id_list=[]
-    // d.visible = newVisibility;
-    child_list=find_child(d,[],'total')
-    child_list.forEach(child=>{
-      child.visible=newVisibility
-      child_id_list.push(child.id)
-    })
-
-    links.forEach(link => {
-      if (child_id_list.includes(link.source.id)  || child_id_list.includes(link.target.id) ) {
-        if (newVisibility){
-          if (link.source.visible===link.target.visible){
-            link.visible = newVisibility;
-          }
-        }else {
-          link.visible = newVisibility;
-        }
-
-
-      }
-    });
-
-    update();
-
-  });
-  function judge_expand(d){
-    const target_list=new Set()
-    const new_child_list=[]//child of each d
-
-    links.forEach(link => {
-      if (link.source.id === d.id || link.target.id === d.id) {
-        target_list.add(link.target.id)
-        target_list.add(link.source.id)
-      }
-    });
+  function svg_ss1 (nodes,links,svg){
+    // console.log(nodes)
+    const idToColorMap = {};
+    // console.log(links)
     nodes.forEach(node => {
-              if (target_list.has(node.id) && node.id!==d.id && dict_level[node.label]>dict_level[d.label]) {
-                new_child_list.push(node)
-              }
+      node.visible = true;
+    });
+    links.forEach(link => {
+      link.visible = true;
+    });
+
+    function getColorById(id) {
+      // 定义颜色的起始和结束值
+      const startHue = 0; // 起始色调
+      const endHue = 300; // 结束色调
+      const saturation = 100; // 饱和度
+      const lightness = 60; // 亮度
+
+      // 如果这个 id 已经有一个颜色，就返回这个颜色
+      if (idToColorMap[id]) {
+        return idToColorMap[id];
+      }
+
+      // 计算当前 id 在总共 8 个 id 中的位置
+      const position = parseInt(id) / 8;
+
+      // 计算当前 id 对应的色调
+      const hue = startHue + (position * (endHue - startHue));
+
+      // 生成 HSL 颜色
+      const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+      // 将颜色与 id 关联起来
+      idToColorMap[id] = color;
+
+      // 返回颜色
+      return color;
+    }
+
+    var simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+    var link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("class", "link");
+
+    var node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("circle")
+            .attr("r", function (d) {
+              // console.log(nodes.find(node => node.id === d.id).label)
+              return 1 / (dict_level[nodes.find(node => node.id === d.id).label]) * 25;
+            })
+            .attr("class", "node")
+            .attr("fill", d => getColorById(dict_level[nodes.find(node => node.id === d.id).label])) // 为每个节点根据level设置颜色
+            .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+    update();
+
+    function update() {
+      // Update links
+      link.style("display", d => d.visible ? null : "none");
+
+      // Update nodes
+      node.style("display", d => d.visible ? null : "none");
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    simulation.on("tick", () => {
+              link.attr("x1", d => d.source.x)
+                      .attr("y1", d => d.source.y)
+                      .attr("x2", d => d.target.x)
+                      .attr("y2", d => d.target.y);
+
+              node.attr("cx", d => d.x)
+                      .attr("cy", d => d.y);
+              var minX = d3.min(nodes, d => d.x),
+                      minY = d3.min(nodes, d => d.y),
+                      maxX = d3.max(nodes, d => d.x),
+                      maxY = d3.max(nodes, d => d.y);
+              // console.log(minX)
+              // 计算视图框大小和位置
+              var viewBoxX = minX,
+                      viewBoxY = minY,
+                      viewBoxWidth = maxX - minX,
+                      viewBoxHeight = maxY - minY;
+
+              // 为了确保内容完全可见，可以留出一点边距
+              var margin = 10;
+              svg.attr("viewBox", `${viewBoxX - margin} ${viewBoxY - margin} ${viewBoxWidth + 2 * margin} ${viewBoxHeight + 2 * margin}`);
+
             }
-    )
-    return new_child_list[0].visible === false;
-  }
-  function find_child(d,child_list,mode){
+    );
 
-    const target_list=new Set()
-    const new_child_list=[]//child of each d
 
-    links.forEach(link => {
-      if (link.source.id === d.id || link.target.id === d.id) {
-        target_list.add(link.target.id)
-        target_list.add(link.source.id)
+    node.on("click", function (event, d) {
+
+      const newVisibility = judge_expand(d);
+
+      let child_list = []
+      const child_id_list = []
+      // d.visible = newVisibility;
+      if (newVisibility === true) {
+        child_list = find_child(d, [], 'only_neighbor')
+      } else {
+        child_list = find_child(d, [], 'total')
       }
-    });
-    nodes.forEach(node => {
-      if (target_list.has(node.id) && node.id!==d.id && dict_level[node.label]>dict_level[d.label]) {
-        new_child_list.push(node)
-        child_list.push(node)
-      }
-    }
-    )
-    if (mode==="total")
-    {
-      new_child_list.forEach(child_node=>{
-        find_child(child_node,child_list,mode)
+
+      child_list.forEach(child => {
+        child.visible = newVisibility
+        child_id_list.push(child.id)
       })
+
+      links.forEach(link => {
+        if (child_id_list.includes(link.source.id) || child_id_list.includes(link.target.id)) {
+          if (newVisibility) {
+            if (link.source.visible === link.target.visible) {
+              link.visible = newVisibility;
+            }
+          } else {
+            link.visible = newVisibility;
+          }
+
+
+        }
+      });
+
+      update();
+
+    });
+    node.on("dblclick", function (event, d) {
+      const newVisibility = true
+      let child_list = []
+      const child_id_list = []
+      // d.visible = newVisibility;
+      child_list = find_child(d, [], 'total')
+      child_list.forEach(child => {
+        child.visible = newVisibility
+        child_id_list.push(child.id)
+      })
+
+      links.forEach(link => {
+        if (child_id_list.includes(link.source.id) || child_id_list.includes(link.target.id)) {
+          if (newVisibility) {
+            if (link.source.visible === link.target.visible) {
+              link.visible = newVisibility;
+            }
+          } else {
+            link.visible = newVisibility;
+          }
+
+
+        }
+      });
+
+      update();
+
+    });
+
+    function judge_expand(d) {
+      const target_list = new Set()
+      const new_child_list = []//child of each d
+
+      links.forEach(link => {
+        if (link.source.id === d.id || link.target.id === d.id) {
+          target_list.add(link.target.id)
+          target_list.add(link.source.id)
+        }
+      });
+      nodes.forEach(node => {
+                if (target_list.has(node.id) && node.id !== d.id && dict_level[node.label] > dict_level[d.label]) {
+                  new_child_list.push(node)
+                }
+              }
+      )
+      return new_child_list[0].visible === false;
     }
 
-  return child_list
+    function find_child(d, child_list, mode) {
+
+      const target_list = new Set()
+      const new_child_list = []//child of each d
+
+      links.forEach(link => {
+        if (link.source.id === d.id || link.target.id === d.id) {
+          target_list.add(link.target.id)
+          target_list.add(link.source.id)
+        }
+      });
+      nodes.forEach(node => {
+                if (target_list.has(node.id) && node.id !== d.id && dict_level[node.label] > dict_level[d.label]) {
+                  new_child_list.push(node)
+                  child_list.push(node)
+                }
+              }
+      )
+      if (mode === "total") {
+        new_child_list.forEach(child_node => {
+          find_child(child_node, child_list, mode)
+        })
+      }
+
+      return child_list
+    }
+
   }
-
-
   // 在力布局稳定后停止模拟
   // simulation.on("end", () => {
   //   这里可以加入任何在布局完成后想执行的代码
     // console.log("力布局已完成，图谱现在是静态的。");
   // });
+  nodes.forEach(node=>{
 
+      node.x=0
+      node.y=0
+      node.vx=0
+      node.vy=0
 
+  })
+  links.forEach(link=>{
+      // link.index+=500
+      link.source.x=0
+      link.target.x=0
+      link.source.y=0
+      link.target.y=0
+  })
+      // link.source.index+=500
+      // link.target.id+=500
+      // link.target.index+=500}
+  //
+  var svg = d3.select("#svg-span"),
+          width = +svg.attr("width"),
+          height = +svg.attr("height");
+  var svg2 = d3.select("#svg-span2"),
+          width = +svg.attr("width"),
+          height = +svg.attr("height");
+  svg_ss1(nodes,links,svg)
+
+  const nodes2 = JSON.parse(JSON.stringify(nodes))
+
+  const links2 = JSON.parse(JSON.stringify(links))
+  console.log(nodes)
+  console.log(nodes2)
+  console.log(links)
+  console.log(links2)
+  console.log(nodes===nodes2)
+  svg_ss1(nodes2,links2,svg2)
 
 </script>
 </body>
