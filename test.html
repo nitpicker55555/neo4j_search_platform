@@ -945,12 +945,13 @@
                   .on("start", dragstarted)
                   .on("drag", dragged)
                   .on("end", dragended));
+  update();
   function update() {
     // Update links
-    link.style("opacity", d => d.visible ? 1 : 0);
+    link.style("display", d => d.visible ? null : "none");
 
     // Update nodes
-    node.style("opacity", d => d.visible ? 1 : 0);
+    node.style("display", d => d.visible ? null : "none");
   }
 
   function dragstarted(event, d) {
@@ -996,36 +997,95 @@
 
   );
 
+
   node.on("click", function(event, d) {
 
-    const newVisibility = false;
+    const newVisibility = judge_expand(d);
+
     let child_list=[]
     const child_id_list=[]
-    link.visible = newVisibility;
     // d.visible = newVisibility;
-    child_list=find_child(d,[])
-    console.log(child_list,"child_list")
+    if (newVisibility===true){
+      child_list=find_child(d,[],'only_neighbor')
+    }else {
+      child_list=find_child(d,[],'total')
+    }
+
     child_list.forEach(child=>{
       child.visible=newVisibility
       child_id_list.push(child.id)
     })
+
     links.forEach(link => {
       if (child_id_list.includes(link.source.id)  || child_id_list.includes(link.target.id) ) {
-        link.visible = newVisibility;
+        if (newVisibility){
+          if (link.source.visible===link.target.visible){
+            link.visible = newVisibility;
+          }
+        }else {
+          link.visible = newVisibility;
+        }
+
+
       }
     });
 
     update();
 
   });
-  function find_child(d,child_list){
+  node.on("dblclick", function(event, d) {
+    const newVisibility = true
+    let child_list=[]
+    const child_id_list=[]
+    // d.visible = newVisibility;
+    child_list=find_child(d,[],'total')
+    child_list.forEach(child=>{
+      child.visible=newVisibility
+      child_id_list.push(child.id)
+    })
+
+    links.forEach(link => {
+      if (child_id_list.includes(link.source.id)  || child_id_list.includes(link.target.id) ) {
+        if (newVisibility){
+          if (link.source.visible===link.target.visible){
+            link.visible = newVisibility;
+          }
+        }else {
+          link.visible = newVisibility;
+        }
+
+
+      }
+    });
+
+    update();
+
+  });
+  function judge_expand(d){
     const target_list=new Set()
-    const new_child_list=[]
+    const new_child_list=[]//child of each d
 
     links.forEach(link => {
       if (link.source.id === d.id || link.target.id === d.id) {
+        target_list.add(link.target.id)
+        target_list.add(link.source.id)
+      }
+    });
+    nodes.forEach(node => {
+              if (target_list.has(node.id) && node.id!==d.id && dict_level[node.label]>dict_level[d.label]) {
+                new_child_list.push(node)
+              }
+            }
+    )
+    return new_child_list[0].visible === false;
+  }
+  function find_child(d,child_list,mode){
 
+    const target_list=new Set()
+    const new_child_list=[]//child of each d
 
+    links.forEach(link => {
+      if (link.source.id === d.id || link.target.id === d.id) {
         target_list.add(link.target.id)
         target_list.add(link.source.id)
       }
@@ -1037,10 +1097,13 @@
       }
     }
     )
-    console.log(new_child_list)
-    new_child_list.forEach(child_node=>{
-      find_child(child_node,child_list)
-    })
+    if (mode==="total")
+    {
+      new_child_list.forEach(child_node=>{
+        find_child(child_node,child_list,mode)
+      })
+    }
+
   return child_list
   }
 
