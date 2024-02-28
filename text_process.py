@@ -7,14 +7,6 @@ import spacy
 
 nltk.download('punkt')
 nltk.download('stopwords')
-def model_trans():
-    from transformers import pipeline
-
-    qa_model = pipeline("question-answering", "timpal0l/mdeberta-v3-base-squad2")
-    question = "Where do I live?"
-    context = "My name is Tim and I live in Sweden. I don't like ice scream"
-    answer=qa_model(question = question, context = context)
-
 def location_time_extract(text):
 
     # 加载spaCy模型
