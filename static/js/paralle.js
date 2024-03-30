@@ -112,9 +112,9 @@ var svg = d3.select("#graph-container").append("svg")
     .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 // var case_index = paramMap.param2.match(/\d+/)[0];
 var global_index=[]
-// 替换"ai1_zh.csv"中的数字
-// var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
-var filename = "{{ url_for('static', filename='cases.csv') }}"
+
+// var filename = "{{ url_for('static', filename='cases.csv') }}"
+var filename = "./static/cases.csv"
 // console.log('filename',filename)
 console.log("case_index",paramMap.param2)
 // console.log(filename,"filename")
