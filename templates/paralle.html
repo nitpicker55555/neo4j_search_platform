@@ -58,8 +58,9 @@
 <textarea id="coordinates" rows="10" cols="50"></textarea>
 
 
-<script src="./static/js/d3.v3.min.js"></script>
+<script src="./static/js_lib/d3.v3.min.js"></script>
 <!--<textarea id="data-output" rows="10" cols="50"></textarea>-->
+<!--<script src="./static/js/paralle.js"></script>-->
 <script>
     function findCommonKeys(dictList) {
         const commonKeys = {};
@@ -178,6 +179,7 @@
     // 替换"ai1_zh.csv"中的数字
     // var filename = "ai1_zh.csv".replace(/\d+/, case_index); 正常
     var filename = "{{ url_for('static', filename='cases.csv') }}"
+    // console.log('filename',filename)
     console.log("case_index",paramMap.param2)
     // console.log(filename,"filename")
     d3.csv(filename, function(error, cities) {
@@ -259,11 +261,11 @@
                 try {
 
                     await fetch('http://127.0.0.1:5002/post_single', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({"single":[paramMap.param2]})
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"single":[paramMap.param2]})
                     })
                         .then(response => response.json())
                         .then(data => {
@@ -328,7 +330,7 @@
             document.getElementById("coordinates").innerHTML =
                 "Selected count: " + selectedRows_num.length.toString() + "\n\n" +
                 "Cases Index: " + global_index.toString() + "\n\n"+"Common keys: " +len_commonKeys.toString()+"\n"+
-            (commonKeys)+"\n\nDetailed info: "+
+                (commonKeys)+"\n\nDetailed info: "+
                 JSON.stringify(selectedRows_num)
 
             if (paramMap.param3==="big") {

@@ -177,6 +177,8 @@ def iframe_page():
         param2 = request.args.get('param2', default_value)
         param3 = request.args.get('param3', default_value)
 
+
+
         return render_template('paralle.html', param1=param1, param2=param2,param3=param3)
 @app.route('/submit', methods=['POST'])
 

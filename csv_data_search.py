@@ -39,7 +39,7 @@ engine = create_engine('sqlite:///static/cases.db')
 Base.metadata.bind = engine
 
 # 读取 CSV 文件
-csv_file = r"static\cases.csv"
+csv_file = r".\static\cases.csv"
 columns = get_columns_from_csv(csv_file)
 class_name = os.path.basename(csv_file).split('.')[0].capitalize()
 # print(class_name)
