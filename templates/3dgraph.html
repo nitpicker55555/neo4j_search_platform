@@ -213,10 +213,11 @@
 
     <!--<div id="suggestions"></div>-->
 
-    <!--<script src="../../dist/3d-force-graph.js"></script>-->
+
 </head>
 <title>3D Knowledge Graph Platform</title>
 <body>
+
 <input type="text" id="node-caption" />
 <!--<svg id="dpp"></svg>-->
 <!--<div id="suggestions2"></div>-->
@@ -237,7 +238,7 @@
         <label  id="result">1 Case found</label>
         <button id="btn_similarity">Similarity</button>
         <button id="all_lines">Parallel Coordinate Plot</button>
-        <button onclick="location.href='/graph_compare'">Graph compare</button>
+        <button  id="similarity_set">Similarity setting</button>
         <button onclick="location.href='/second'">Add data</button>
 
 
@@ -286,7 +287,6 @@
     </tbody>
 </table>
 
-
 <script src="./static/js_lib/3d-force-graph.min.js"></script>
 <script src="./static/js_lib/d3.v7.min.js"></script>
 <script src="./static/js_lib/index.js"></script>
@@ -295,7 +295,6 @@
 <script src="./static/js_lib/neovis.js"></script>
 <script src="./static/js_lib/sprite.js"></script>
 <script src="./static/js_lib/three.cjs"></script>
-
 
 <script type="module" src="./static/js/svg_span_draw.js"></script>
 <script type="module" src="./static/js/main.js"></script>

@@ -1,5 +1,5 @@
 import {svg_span_draw} from "./svg_span_draw.js";
-import {getColorById,create_new_link,get_truelabel_index,update_row,dict_nodes,dict_level,tooltip,svg_span} from "./main.js";
+import {getColorById,create_new_link,get_truelabel_index,update_row,dict_nodes,dict_level,tooltip,svg_span,node_position_dict} from "./main.js";
 
 export function two_d(nodes, links) {
 
@@ -259,7 +259,7 @@ export function two_d(nodes, links) {
         // console.log(d.label)
         if (d.label==="AI ethics issues"){
             const send_links=create_new_link(links,id_links[parseInt(d.showCaption)])
-            svg_span_draw(JSON.parse(JSON.stringify(send_nodes)),JSON.parse(JSON.stringify(send_links)),dict_level)
+            svg_span_draw(JSON.parse(JSON.stringify(send_nodes)),JSON.parse(JSON.stringify(send_links)),svg_span,dict_level)
             svg_span.transition()
                 .style('display','block')
                 .duration(200)

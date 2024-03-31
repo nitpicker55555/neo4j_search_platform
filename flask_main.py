@@ -1,7 +1,7 @@
 import os
 
 import requests
-from flask import Flask, request,render_template,jsonify,session
+from flask import Flask, request,render_template,jsonify,session,Response
 from lxml import html
 from CreateDatabase import CreateDatabase
 from pro_web import get_content_from_web
@@ -9,6 +9,7 @@ import csv_data_search
 import csv_database_update
 from flask_session import Session
 import text_process
+from flask_socketio import SocketIO, emit
 import docx
 import pandas as pd
 app = Flask(__name__)
@@ -16,6 +17,7 @@ app.config['SESSION_TYPE'] = 'filesystem'  # 会话数据存储在文件系统�
 Session(app)
 
 instance_class=CreateDatabase()
+inital_weights= {'weights': {'Case theme': 1, 'Fields': 1, 'Users': 1, 'Provider': 1, 'Influencer': 1, 'Results': 1, 'Reason': 1, 'Positionalattribute': 1, 'Opinion': 1, 'Attitude': 1, 'Response': 1, 'Description': 1, 'Place': 1, 'degree of influence': 1, 'Data acquisition': 1, 'Data access': 1, 'Data modeling': 1, 'Behavior tracking': 1, 'Behavior prediction': 1, 'Behaviour nudging': 1, 'Wrong user group': 1, 'Wrong user task': 1, 'Surprising learning result': 1, 'Positive design that produces negative results that do not meet expectations': 1, 'Negative design that produces negative results that meet expectations': 1, 'Overly human-like and leading to ethics problems': 1, 'Not human-like enough to cause ethics problems': 1, 'Not enough beyond human to cause ethics problems': 1, 'ethics issues caused by the wrong user group': 1, 'ethics issues due to wrong user tasks': 1, 'Infringements on human rights': 1, 'Social detriment': 1, 'Emotional or psychological injury': 1, 'Loss of opportunity': 1, 'Physical injury': 1, 'Economic loss': 1, 'Transparency': 1, 'Justice and fairness': 1, 'Privacy': 1, 'Trust': 1, 'Non-maleficence': 1, 'Responsibility': 1}}
 
 @app.route('/')
 def index():
@@ -34,7 +36,7 @@ def post_single():
     if data!={}:
         single_index=data['single']
 
-        data=csv_data_search.seach_function(single_index)
+        data=csv_data_search.search_function(single_index)
         print(data)
         if data!={}:
             return jsonify({'receivedData': data})
@@ -54,6 +56,7 @@ def post_level():
     data_dict = dict(zip(keys, values))
     return jsonify({'reply': data_dict})
 
+
 @app.route('/post_multi', methods=['POST'])
 def post_multi():
 
@@ -61,7 +64,7 @@ def post_multi():
     if data!={}:
         multi_index_list=data['multi']
 
-        data=csv_data_search.seach_function(multi_index_list)
+        data=csv_data_search.search_function(multi_index_list)
         session['case_list']=data
         # print(data)
         # if data!={}:
@@ -75,16 +78,46 @@ def post_similarity():
 
     data = request.json
     if data!={}:
-        multi_index_list=data['simi']
+        # multi_index_list=data['simi']
+        weights = data['weights']
+        session['weights']=weights
 
-        data=csv_data_search.search_similar(multi_index_list)
-        print(data)
+        print(data,'post_similarity')
         # print(data)
         # if data!={}:
         #     return jsonify({'receivedData': data})
         # else:
         #     raise Exception ("no data found")
     return jsonify({'receivedData': data})
+@app.route('/cal_similarity', methods=['POST'])
+def cal_similarity():
+
+    data = request.json
+    if data!={}:
+        multi_index_list=data['multi_index_list']
+        try:
+            weights=session['weights']
+        except:
+            weights=inital_weights
+        print(data,'cal_similarity',multi_index_list)
+        data=csv_data_search.search_similar(multi_index_list,weights)
+
+    return jsonify({'receivedData': data})
+@app.route('/get_cache', methods=['POST'])
+def get_cache():
+
+
+    if 'weights' in session:
+        weights=session['weights']
+    else:
+        weights=inital_weights
+
+    return jsonify({'receivedData': weights})
+
+@app.route('/render_similarity')
+def render_similarity():
+    return render_template('similarity.html')  # Load the HTML file as a template
+
 @app.route('/post_del', methods=['POST'])
 def post_del():
 
@@ -154,6 +187,13 @@ def upload_doc():
         for para in doc.paragraphs:
             fullText.append(para.text)
         return jsonify({"reply": "\n".join(fullText)})
+def generate_messages():
+    # 示例：发送一个简单的消息
+    yield "data: Hello, world!\n\n"
+
+@app.route('/events')
+def sse_request():
+    return Response(generate_messages(), mimetype='text/event-stream')
 @app.route('/process_text', methods=['POST'])
 def process_text():
     data = request.json

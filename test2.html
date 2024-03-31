@@ -1,75 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>D3 Graph Display Toggle</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <title>Flask SocketIO Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    document.addEventListener('DOMContentLoaded', (event) => {
+      var socket = io.connect('http://127.0.0.1:5002/');
+      socket.on('my message', function(data) {
+        console.log(data);
+        alert(data.data);  // 显示来自服务器的消息
+      });
+    });
+  </script>
 </head>
 <body>
-<svg width="800" height="600"></svg>
-<script>
-  const svg = d3.select("svg"),
-          width = +svg.attr("width"),
-          height = +svg.attr("height");
-
-  const nodes = [
-    { id: 1 },
-    { id: 2 },
-    { id: 3 },
-    { id: 4 },
-    { id: 5 } // Central node
-  ];
-
-  const links = [
-    { source: 1, target: 5 },
-    { source: 2, target: 5 },
-    { source: 3, target: 5 },
-    { source: 4, target: 5 }
-  ];
-
-  const simulation = d3.forceSimulation(nodes)
-          .force("link", d3.forceLink(links).id(d => d.id))
-          .force("charge", d3.forceManyBody())
-          .force("center", d3.forceCenter(width / 2, height / 2));
-
-  const link = svg.append("g")
-          .attr("class", "links")
-          .selectAll("line")
-          .data(links)
-          .enter().append("line")
-          .attr("stroke", "#999")
-          .attr("stroke-opacity", 0.6);
-
-  const node = svg.append("g")
-          .attr("class", "nodes")
-          .selectAll("circle")
-          .data(nodes)
-          .enter().append("circle")
-          .attr("r", 5)
-          .attr("fill", d => d.id === 5 ? "red" : "blue")
-
-  node.on("click", function(event, d) {
-    console.log(d)
-    if (d.id === 5) {
-      toggleVisibility();
-      console.log(d)
-    }
-  })
-  function toggleVisibility() {
-    const isHidden = link.style("display") === "none";
-
-    link.style("display", isHidden ? "inline" : "none");
-    node.style("display", function(d) { return (d.id === 5 || isHidden) ? "inline" : "none"; });
-  }
-
-  simulation.on("tick", () => {
-    link.attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-    node.attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-  });
-</script>
+<h1>WebSocket Test</h1>
 </body>
 </html>

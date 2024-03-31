@@ -8812,7 +8812,7 @@ nodes_test=[
   }
 ]
 links_processed=[]
-links_test.forEach(link=>{
+links.forEach(link=>{
   if ((link.target.label==='Provider' || link.source.label==='Provider')){
     if  (link.target.label==='Relational attributes' || link.source.label==='Relational attributes'){
       links_processed.push(link)
@@ -8825,7 +8825,7 @@ links_test.forEach(link=>{
 })
 
 svg_ss1(nodes_test,links_test,svg)
-svg_ss2(nodes_test,links_processed,svg2)
+svg_ss2(nodes,links_processed,svg2)
 
 </script>
 </body>

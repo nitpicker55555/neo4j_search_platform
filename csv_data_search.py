@@ -54,7 +54,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # 查询主键为12的记录
-def seach_function(index_list):
+def search_function(index_list):
     return_list=[]
 
     for i in index_list:
@@ -69,7 +69,7 @@ def seach_function(index_list):
             print("No record found with Index",i)
     return return_list
 # return_list=seach_function([1])
-def search_similar(target_index):
+def search_similar(target_index,weights):
     # print(target_index)
     query = session.query(DynamicModel)
     results = query.all()
@@ -85,26 +85,32 @@ def search_similar(target_index):
     #
     target_list=[]
 
+
+
     for each_case in all_dicts:
-        need_dict={"one_hot":[],"content":[],"Index":0}
+        need_dict={"one_hot":[],"content":{},"Index":0}
 
         for header in each_case:
             if header in boolean_header:
-                need_dict["one_hot"].append(each_case[header])
+                weight=weights[header.replace('_',' ')]
+
+                need_dict["one_hot"].append(int(each_case[header])*weight)#weights[header]加权
+
+                need_dict["one_hot"].append(0)
             elif header=="Index":
                 need_dict['Index']=each_case[header]
             else:
                 if header!="degree of influence" and header!="URL" and header!="Time":
-                    need_dict['content'].append(each_case[header])
+                    need_dict['content'][header]=each_case[header]
         if str( each_case['Index']) in target_index:
-            target_list.append(need_dict)
+            target_list.append(need_dict)  # 目标case
             # print(need_dict)
-        analyse_dict_list.append(need_dict)
+        analyse_dict_list.append(need_dict) # 所有case
     # print(len(analyse_dict_list))
     for each_target in target_list:
         # print(each_target)
 
-        similar_index_list.extend(calculate_combined_similarity(analyse_dict_list,each_target))
+        similar_index_list.extend(calculate_combined_similarity(analyse_dict_list,each_target,weights))
     # print("similar_index_list: ",tuple(similar_index_list))
     return list(tuple(similar_index_list))
 
