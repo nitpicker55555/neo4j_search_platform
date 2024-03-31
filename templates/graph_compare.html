@@ -2,9 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Graph compare</title>
+    <style>
+        .svg-span{
+            position: absolute;
+            top: 10px;
+            z-index: 10000;
+            right: 10px;
+            width: 400px; /* 可根据需要调整容器宽度 */
+            height: 400px;
+            background-color: black;
+            opacity: 0;
+        }
+    </style>
 </head>
-<body>
 
+<body>
+<svg class="svg-span" ></svg>
+<script src="./static/js_lib/3d-force-graph.min.js"></script>
+<script src="./static/js_lib/d3.v7.min.js"></script>
+<script src="./static/js_lib/index.js"></script>
+<script src="./static/js_lib/jquery.min.js"></script>
+<script src="./static/js_lib/neo4j-web.js"></script>
+<script src="./static/js_lib/neovis.js"></script>
+<script src="./static/js_lib/sprite.js"></script>
+<script src="./static/js_lib/three.cjs"></script>
+
+
+<script type="module" src="./static/js/graph_compare.js"></script>
+<!--<script type="module" src="./static/js/main.js"></script>-->
 </body>
 </html>

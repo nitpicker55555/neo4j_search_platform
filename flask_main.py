@@ -23,6 +23,9 @@ def index():
 @app.route('/second')
 def second():
     return render_template('upload.html')
+@app.route('/graph_compare')
+def graph_compare():
+    return render_template('graph_compare.html')
 
 @app.route('/post_single', methods=['POST'])
 def post_single():

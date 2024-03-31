@@ -1,4 +1,4 @@
-import {getColorById} from './main.js'
+import {getColorById,dict_level,svg_span} from './main.js'
 function scaleNodesToFitContainer(nodes, containerWidth, containerHeight,margin = 10) {
 
     let minX = d3.min(nodes, d => d.x);
@@ -32,7 +32,7 @@ function scaleNodesToFitContainer(nodes, containerWidth, containerHeight,margin 
 
     return nodes; // 返回调整后的节点位置
 }
-export function svg_span_draw(nodes,links_original,dict_level){
+export function svg_span_draw(nodes,links_original){
     // var links=[]
     // links_original.forEach(link=>{
 
@@ -51,7 +51,7 @@ export function svg_span_draw(nodes,links_original,dict_level){
             links.push(link)
         }
     })
-    var svg_span = d3.select(".svg-span");
+
     var svg = svg_span;
     const width = +svg.attr("width");
     const height = +svg.attr("height");
