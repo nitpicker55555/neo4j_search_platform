@@ -309,11 +309,9 @@ document.getElementById('plus_button').addEventListener('click', function() {
 // 获取 document.body 的子元素总数，仅包括元素节点
     var totalChildElements = document.body.children.length;
     console.log(totalChildElements,"totalChildElements")
-    if (checkbox_3d.checked) {
-        clickCount=totalChildElements-7
-    }else {
-        clickCount=totalChildElements-11
-    }
+
+    clickCount=totalChildElements-23
+
 
     // console.log("Total child nodes: " + totalChildNodes);
     console.log("Total child elements: " + totalChildElements);
@@ -361,15 +359,11 @@ document.getElementById('minus_button').addEventListener('click', function() {
     var lastChild = document.body.lastChild;
     console.log(totalChildElements,"totalChildElements")
 // 从 document.body 中移除这个子节点
-    if (checkbox_3d.checked) {
-        if (totalChildElements>8){
+
+        if (totalChildElements>24){
             document.body.removeChild(lastChild);
         }
-    }else {
-        if (totalChildElements>12){
-            document.body.removeChild(lastChild);
-        }
-    }
+
 
 
 });
