@@ -279,6 +279,7 @@ export const node_position_dict={
     }
 }
 export const tooltip = d3.select(".tooltip");
+export const tooltip_left = d3.select(".tooltip_left");
 export var svg_span = d3.select(".svg-span");
 
 // console.log(svg_span)
@@ -552,10 +553,11 @@ btn_similarity.addEventListener("click", () => {
         .then(response => response.json())
         .then(data =>{
             // console.log(data)
-            console.log(data);
+            // console.log(data);
             const simi_index_list=data
             console.log(simi_index_list['receivedData'])
-            get_index_list_return_query(simi_index_list['receivedData']);
+            alert("For cases: "+global_index_list+'\n Similarity results:\n'+simi_index_list['details'])
+            get_index_list_return_query(simi_index_list['receivedData'])
         })
         .catch(error => {
             console.error('Error:', error);
@@ -745,7 +747,7 @@ export function get_truelabel_index(str) {
     return parts[parts.length - 1];
 }
 
-const idToColorMap = {};
+const idToColorMap = {100:'black'};
 // 拖拽行为的实现
 export function getColorById(id) {
     // 定义颜色的起始和结束值

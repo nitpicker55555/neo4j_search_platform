@@ -82,15 +82,19 @@ def calculate_combined_similarity(documents, target,weights):
 
     # 构建带有相似度的结果字典列表
     result_documents = [{"Index": str(i), "content": documents[i]["content"], "similarity": sim}
-                        for i, sim in enumerate(combined_sims) if str(i) != target_index]
+                        for i, sim in enumerate(combined_sims)]
 
     # 按相似度排序
+    details_dict={}
     sorted_result_documents = sorted(result_documents, key=lambda x: x["similarity"], reverse=True)
 
     # 提取排名前五的文档索引，包括自己
     result_index = [doc['Index'] for doc in sorted_result_documents[:6]]
-    print(result_index)
-    return result_index
+    for i in sorted_result_documents[1:6]:
+
+        details_dict[i['Index']]=i['similarity']
+    print(details_dict)
+    return result_index,details_dict
 
 # def add_weights(vector,weights):
 #     def vectorize(text):

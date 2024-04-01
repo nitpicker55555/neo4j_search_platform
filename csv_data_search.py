@@ -109,10 +109,10 @@ def search_similar(target_index,weights):
     # print(len(analyse_dict_list))
     for each_target in target_list:
         # print(each_target)
-
-        similar_index_list.extend(calculate_combined_similarity(analyse_dict_list,each_target,weights))
+        simi_list,details_dict=calculate_combined_similarity(analyse_dict_list,each_target,weights)
+        similar_index_list.extend(simi_list)
     # print("similar_index_list: ",tuple(similar_index_list))
-    return list(tuple(similar_index_list))
+    return list(tuple(similar_index_list)),details_dict
 
 # search_similar(["24"])
 # 关闭 session

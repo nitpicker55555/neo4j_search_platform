@@ -5065,7 +5065,10 @@
       "index": 135
     }
   ]
-
+var node_list=[]
+nodes.forEach(node=>{
+  node_list.push(node['label'])
+})
 
   function deepClone(obj, hash = new WeakMap()) {
     if (obj === null || typeof obj !== 'object') return obj;
@@ -5317,7 +5320,7 @@
   //   这里可以加入任何在布局完成后想执行的代码
     // console.log("力布局已完成，图谱现在是静态的。");
   // });
-const idToColorMap = {};
+const idToColorMap = {100:'black'};
 function getColorById(id) {
   // 定义颜色的起始和结束值
   const startHue = 0; // 起始色调
@@ -5345,7 +5348,19 @@ function getColorById(id) {
   // 返回颜色
   return color;
 }
-function svg_ss2 (nodes,links,svg){
+function svg_ss2 (nodes2,links2,svg,nodes,links){
+  const node2_list=[]
+  nodes2.forEach(node=>{
+    node2_list.push(node['label'])
+
+  })
+  node_list.forEach(node=>{
+    if (!node2_list.includes(node)){
+      dict_level[node]=100
+      console.log('asdasdasd')
+    }
+  })
+  console.log(node_list,"asdasd",node2_list)
   // console.log(nodes)
   const node_position_dict={
     "AI ethics issues": {
@@ -8811,6 +8826,7 @@ nodes_test=[
     "vx": 0.09930871559094913
   }
 ]
+
 links_processed=[]
 links.forEach(link=>{
   if ((link.target.label==='Provider' || link.source.label==='Provider')){
@@ -8825,7 +8841,7 @@ links.forEach(link=>{
 })
 
 svg_ss1(nodes_test,links_test,svg)
-svg_ss2(nodes,links_processed,svg2)
+svg_ss2(nodes_test,links_test,svg2,nodes,links)
 
 </script>
 </body>

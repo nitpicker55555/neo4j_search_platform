@@ -93,6 +93,7 @@ def post_similarity():
 def cal_similarity():
 
     data = request.json
+    details_dict={}
     if data!={}:
         multi_index_list=data['multi_index_list']
         try:
@@ -100,9 +101,9 @@ def cal_similarity():
         except:
             weights=inital_weights
         print(data,'cal_similarity',multi_index_list)
-        data=csv_data_search.search_similar(multi_index_list,weights)
+        data,details_dict=csv_data_search.search_similar(multi_index_list,weights)
 
-    return jsonify({'receivedData': data})
+    return jsonify({'receivedData': data,'details':str(details_dict)})
 @app.route('/get_cache', methods=['POST'])
 def get_cache():
 

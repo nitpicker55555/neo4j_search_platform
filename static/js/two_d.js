@@ -1,5 +1,5 @@
 import {svg_span_draw} from "./svg_span_draw.js";
-import {getColorById,create_new_link,get_truelabel_index,update_row,dict_nodes,dict_level,tooltip,svg_span,node_position_dict} from "./main.js";
+import {getColorById,create_new_link,get_truelabel_index,update_row,dict_nodes,dict_level,tooltip,tooltip_left,svg_span,node_position_dict} from "./main.js";
 
 export function two_d(nodes, links) {
 
@@ -58,7 +58,7 @@ export function two_d(nodes, links) {
         .force("charge", d3.forceManyBody().strength(-70))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("collide", d3.forceCollide().radius(function(d) {
-            return 1/(dict_level[nodes.find(node => node.id === d.id).label])*200; // 根据节点大小设置碰撞半径，+2 为额外间距
+            return 1/(dict_level[nodes.find(node => node.id === d.id).label])*200+40; // 根据节点大小设置碰撞半径，+2 为额外间距
         }))
     // 创建链接线
     const link = svg.append("g")
@@ -86,11 +86,16 @@ export function two_d(nodes, links) {
         .on("mousemove", function(event) {
             tooltip.style("left", (event.pageX) + "px")
                 .style("top", (event.pageY + 12) + "px");
+            tooltip_left.style("left", (event.pageX) + "-10px")
+                .style("top", (event.pageY + 12) + "px");
             svg_span.style("left", (event.pageX) + "px")
-                .style("top", (event.pageY - 350) + "px");
+                .style("top", (event.pageY - 210) + "px");
         })
         .on("mouseout", function() {
             tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+            tooltip_left.transition()
                 .duration(500)
                 .style("opacity", 0);
             svg_span.transition()
@@ -250,6 +255,10 @@ export function two_d(nodes, links) {
         tooltip.transition()
             .duration(200)
             .style("opacity", .9);
+        tooltip_left.transition()
+            .duration(200)
+            .style("opacity", .9);
+
 
         tooltip.html("Caption: " + d.caption)
             .style("left", (event.pageX) + "px")
@@ -259,13 +268,13 @@ export function two_d(nodes, links) {
         // console.log(d.label)
         if (d.label==="AI ethics issues"){
             const send_links=create_new_link(links,id_links[parseInt(d.showCaption)])
-            svg_span_draw(JSON.parse(JSON.stringify(send_nodes)),JSON.parse(JSON.stringify(send_links)),svg_span,dict_level)
+            svg_span_draw(JSON.parse(JSON.stringify(send_nodes)),JSON.parse(JSON.stringify(send_links)),svg_span,dict_level,tooltip_left)
             svg_span.transition()
                 .style('display','block')
                 .duration(200)
                 .style("opacity", .9)
                 .style("left", (event.pageX) + "px")
-                .style("top", (event.pageY - 350) + "px");
+                .style("top", (event.pageY - 210) + "px");
         }
         //
         // 例如：在控制台打印节点的信息

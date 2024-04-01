@@ -42,13 +42,40 @@
         pointer-events: none;
         opacity: 0;
     }
+    .list-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .list-item {
+        background-color: white;
+        padding: 2px;
+        margin: 2px 0;
+        border: 1px solid #ddd;
+    }
+    .tooltip_left {
+        position: absolute;
+        z-index: 999;
+        text-align: center;
+        width: 150px;
+        height: auto;
+        padding: 1px;
+        font: 6px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+        opacity: 0;
+    }
     .svg-span{
         position: absolute;
         top: 10px;
         z-index: 10000;
         right: 10px;
-        width: 400px; /* 可根据需要调整容器宽度 */
-        height: 300px;
+        width: 200px; /* 可根据需要调整容器宽度 */
+        height: 200px;
         background-color: black;
         opacity: 0;
     }
@@ -237,8 +264,9 @@
         <button id="minus_button">-</button>
         <label  id="result">1 Case found</label>
         <button id="btn_similarity">Similarity</button>
-        <button id="all_lines">Parallel Coordinate Plot</button>
         <button  id="similarity_set">Similarity setting</button>
+        <button id="all_lines">Parallel Coordinate Plot</button>
+
         <button onclick="location.href='/second'">Add data</button>
 
 
@@ -253,6 +281,7 @@
 </div>
 <svg class="svg-span" ></svg>
 <div class="tooltip"></div>
+<div id="listContainer" class="tooltip_left"></div>
 
 <div class="span-container">
 
